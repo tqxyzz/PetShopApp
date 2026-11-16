@@ -84,6 +84,8 @@ fun HomeScreen(
     onNavigateToCart: () -> Unit = {},
     onNavigateToProductDetail: (Product) -> Unit = {},
     onNavigateToFlashSale: () -> Unit = {},
+    onNavigateToVoucher: () -> Unit = {},
+    onNavigateToBrand: () -> Unit = {},
     onNavigateToProfile: () -> Unit = {},
     onNavigateToAssistant: () -> Unit = {}
 ) {
@@ -144,12 +146,12 @@ fun HomeScreen(
             Spacer(modifier = Modifier.height(20.dp))
 
             // 6. Exclusive Vouchers Section
-            HomeVouchersSection()
+            HomeVouchersSection(onSeeAllClick = onNavigateToVoucher)
 
             Spacer(modifier = Modifier.height(20.dp))
 
             // 7. Official Brands Section
-            HomeBrandsSection()
+            HomeBrandsSection(onBrandClick = onNavigateToBrand)
 
             Spacer(modifier = Modifier.height(20.dp))
 
@@ -897,7 +899,9 @@ fun FlashSaleCard(
 }
 
 @Composable
-fun HomeVouchersSection() {
+fun HomeVouchersSection(
+    onSeeAllClick: () -> Unit = {}
+) {
     Column(modifier = Modifier.padding(horizontal = 20.dp)) {
         // Header
         Row(
@@ -918,8 +922,9 @@ fun HomeVouchersSection() {
             Text(
                 text = "Kho Voucher",
                 fontSize = 13.sp,
-                fontWeight = FontWeight.Medium,
-                color = MutedText
+                fontWeight = FontWeight.Bold,
+                color = SecondarySoftText,
+                modifier = Modifier.clickable { onSeeAllClick() }
             )
         }
 
@@ -928,20 +933,24 @@ fun HomeVouchersSection() {
         // Voucher List Row
         LazyRow(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
             items(sampleVouchers) { voucher ->
-                VoucherCard(voucher = voucher)
+                VoucherCard(voucher = voucher, onClick = onSeeAllClick)
             }
         }
     }
 }
 
 @Composable
-fun VoucherCard(voucher: VoucherItem) {
+fun VoucherCard(
+    voucher: VoucherItem,
+    onClick: () -> Unit = {}
+) {
     Box(
         modifier = Modifier
             .width(220.dp)
             .clip(RoundedCornerShape(16.dp))
             .background(CardSurface)
             .border(1.dp, BorderDivider, RoundedCornerShape(16.dp))
+            .clickable { onClick() }
             .padding(14.dp)
     ) {
         Row(
@@ -992,8 +1001,15 @@ fun VoucherCard(voucher: VoucherItem) {
 }
 
 @Composable
-fun HomeBrandsSection() {
-    Column(modifier = Modifier.padding(horizontal = 20.dp)) {
+fun HomeBrandsSection(
+    onBrandClick: () -> Unit = {}
+) {
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clickable { onBrandClick() }
+            .padding(horizontal = 20.dp)
+    ) {
         // Header
         Row(
             modifier = Modifier.fillMaxWidth(),
@@ -1030,20 +1046,24 @@ fun HomeBrandsSection() {
         // Brand Circle Cards Row
         LazyRow(horizontalArrangement = Arrangement.spacedBy(14.dp)) {
             items(sampleBrands) { brand ->
-                BrandCard(brand = brand)
+                BrandCard(brand = brand, onClick = onBrandClick)
             }
         }
     }
 }
 
 @Composable
-fun BrandCard(brand: BrandItem) {
+fun BrandCard(
+    brand: BrandItem,
+    onClick: () -> Unit = {}
+) {
     Box(
         modifier = Modifier
             .width(96.dp)
             .clip(RoundedCornerShape(20.dp))
             .background(CardSurface)
             .border(1.dp, BorderDivider, RoundedCornerShape(20.dp))
+            .clickable { onClick() }
             .padding(vertical = 12.dp, horizontal = 8.dp),
         contentAlignment = Alignment.Center
     ) {
