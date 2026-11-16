@@ -17,6 +17,8 @@ import com.example.petshop.feature.auth.ForgotPasswordDialog
 import com.example.petshop.feature.auth.LoginScreen
 import com.example.petshop.feature.auth.RegisterScreen
 import com.example.petshop.feature.brand.OfficialBrandsScreen
+import com.example.petshop.feature.category.CategoryProductListScreen
+import com.example.petshop.feature.category.CategoryScreen
 import com.example.petshop.feature.flashsale.FlashSaleScreen
 import com.example.petshop.feature.home.HomeScreen
 import com.example.petshop.feature.onboarding.OnboardingScreen
@@ -33,6 +35,8 @@ sealed class AppScreen {
     object FlashSale : AppScreen()
     object Voucher : AppScreen()
     object Brand : AppScreen()
+    object Category : AppScreen()
+    object CategoryProductList : AppScreen()
 }
 
 class MainActivity : ComponentActivity() {
@@ -43,6 +47,7 @@ class MainActivity : ComponentActivity() {
             PetShopTheme {
                 var currentScreen by remember { mutableStateOf<AppScreen>(AppScreen.Splash) }
                 var showForgotPasswordDialog by remember { mutableStateOf(false) }
+                var activeCategoryTitle by remember { mutableStateOf("Đồ Dùng & Thức Ăn Cho Chó") }
 
                 Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
                     Box(modifier = Modifier.padding(innerPadding)) {
@@ -94,6 +99,15 @@ class MainActivity : ComponentActivity() {
                                 HomeScreen(
                                     onNavigateToFlashSale = {
                                         currentScreen = AppScreen.FlashSale
+                                    },
+                                    onNavigateToVoucher = {
+                                        currentScreen = AppScreen.Voucher
+                                    },
+                                    onNavigateToCategory = {
+                                        currentScreen = AppScreen.Category
+                                    },
+                                    onNavigateToBrand = {
+                                        currentScreen = AppScreen.Brand
                                     }
                                 )
                             }
@@ -115,6 +129,25 @@ class MainActivity : ComponentActivity() {
                                 OfficialBrandsScreen(
                                     onBack = {
                                         currentScreen = AppScreen.Home
+                                    }
+                                )
+                            }
+                            is AppScreen.Category -> {
+                                CategoryScreen(
+                                    onNavigateToHome = {
+                                        currentScreen = AppScreen.Home
+                                    },
+                                    onNavigateToCategoryProductList = { categoryTitle ->
+                                        activeCategoryTitle = categoryTitle
+                                        currentScreen = AppScreen.CategoryProductList
+                                    }
+                                )
+                            }
+                            is AppScreen.CategoryProductList -> {
+                                CategoryProductListScreen(
+                                    categoryTitle = activeCategoryTitle,
+                                    onBack = {
+                                        currentScreen = AppScreen.Category
                                     }
                                 )
                             }
