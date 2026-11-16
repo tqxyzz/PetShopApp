@@ -27,6 +27,9 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.example.petshop.feature.auth.ForgotPasswordDialog
+import com.example.petshop.feature.auth.LoginScreen
+import com.example.petshop.feature.auth.RegisterScreen
 import com.example.petshop.feature.onboarding.OnboardingScreen
 import com.example.petshop.feature.splash.SplashScreen
 import com.example.petshop.ui.theme.GlobalBackground
@@ -39,6 +42,7 @@ sealed class AppScreen {
     object Splash : AppScreen()
     object Onboarding : AppScreen()
     object Login : AppScreen()
+    object Register : AppScreen()
     object Home : AppScreen()
 }
 
@@ -49,6 +53,7 @@ class MainActivity : ComponentActivity() {
         setContent {
             PetShopTheme {
                 var currentScreen by remember { mutableStateOf<AppScreen>(AppScreen.Splash) }
+                var showForgotPasswordDialog by remember { mutableStateOf(false) }
 
                 Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
                     Box(modifier = Modifier.padding(innerPadding)) {
@@ -63,7 +68,7 @@ class MainActivity : ComponentActivity() {
                             is AppScreen.Onboarding -> {
                                 OnboardingScreen(
                                     onFinishOnboarding = {
-                                        currentScreen = AppScreen.Home
+                                        currentScreen = AppScreen.Login
                                     },
                                     onNavigateToLogin = {
                                         currentScreen = AppScreen.Login
@@ -71,19 +76,47 @@ class MainActivity : ComponentActivity() {
                                 )
                             }
                             is AppScreen.Login -> {
-                                PlaceholderScreen(
-                                    title = "Màn hình Đăng nhập",
-                                    subtitle = "Tính năng đang được phát triển",
-                                    onBack = { currentScreen = AppScreen.Onboarding }
+                                LoginScreen(
+                                    onNavigateToRegister = {
+                                        currentScreen = AppScreen.Register
+                                    },
+                                    onNavigateToHome = {
+                                        currentScreen = AppScreen.Home
+                                    },
+                                    onForgotPassword = {
+                                        showForgotPasswordDialog = true
+                                    }
+                                )
+                            }
+                            is AppScreen.Register -> {
+                                RegisterScreen(
+                                    onNavigateToLogin = {
+                                        currentScreen = AppScreen.Login
+                                    },
+                                    onNavigateToHome = {
+                                        currentScreen = AppScreen.Home
+                                    },
+                                    onBack = {
+                                        currentScreen = AppScreen.Login
+                                    }
                                 )
                             }
                             is AppScreen.Home -> {
-                                PlaceholderScreen(
-                                    title = "Trang chủ Avocado PetShop",
-                                    subtitle = "Chào mừng bạn đến với Avocado PetShop!",
-                                    onBack = { currentScreen = AppScreen.Onboarding }
+                                PlaceholderHomeScreen(
+                                    onLogout = {
+                                        currentScreen = AppScreen.Login
+                                    }
                                 )
                             }
+                        }
+
+                        if (showForgotPasswordDialog) {
+                            ForgotPasswordDialog(
+                                onDismiss = { showForgotPasswordDialog = false },
+                                onSubmit = { email ->
+                                    // Password recovery flow
+                                }
+                            )
                         }
                     }
                 }
@@ -93,10 +126,8 @@ class MainActivity : ComponentActivity() {
 }
 
 @Composable
-fun PlaceholderScreen(
-    title: String,
-    subtitle: String,
-    onBack: () -> Unit
+fun PlaceholderHomeScreen(
+    onLogout: () -> Unit
 ) {
     Box(
         modifier = Modifier
@@ -107,24 +138,24 @@ fun PlaceholderScreen(
     ) {
         Column(horizontalAlignment = Alignment.CenterHorizontally) {
             Text(
-                text = title,
+                text = "🎉 Trang chủ Avocado PetShop",
                 fontSize = 22.sp,
-                fontWeight = FontWeight.Bold,
+                fontWeight = FontWeight.ExtraBold,
                 color = PrimaryText
             )
             Spacer(modifier = Modifier.height(8.dp))
             Text(
-                text = subtitle,
+                text = "Đăng nhập thành công! Chào mừng sen và bé cưng.",
                 fontSize = 14.sp,
                 color = SecondaryText
             )
             Spacer(modifier = Modifier.height(24.dp))
             Button(
-                onClick = onBack,
+                onClick = onLogout,
                 shape = RoundedCornerShape(20.dp),
                 colors = ButtonDefaults.buttonColors(containerColor = PrimaryCTA)
             ) {
-                Text(text = "Quay lại Onboarding", color = Color.White)
+                Text(text = "Đăng xuất", color = Color.White, fontWeight = FontWeight.Bold)
             }
         }
     }
