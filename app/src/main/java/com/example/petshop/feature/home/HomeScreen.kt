@@ -83,6 +83,7 @@ fun HomeScreen(
     onNavigateToCategory: () -> Unit = {},
     onNavigateToCart: () -> Unit = {},
     onNavigateToProductDetail: (Product) -> Unit = {},
+    onNavigateToFlashSale: () -> Unit = {},
     onNavigateToProfile: () -> Unit = {},
     onNavigateToAssistant: () -> Unit = {}
 ) {
@@ -135,7 +136,10 @@ fun HomeScreen(
             Spacer(modifier = Modifier.height(20.dp))
 
             // 5. Flash Sale Section
-            HomeFlashSaleSection(onProductClick = onNavigateToProductDetail)
+            HomeFlashSaleSection(
+                onProductClick = onNavigateToProductDetail,
+                onSeeAllClick = onNavigateToFlashSale
+            )
 
             Spacer(modifier = Modifier.height(20.dp))
 
@@ -715,7 +719,8 @@ private fun CategoryItem.titleEmojiOrIcon(): String = this.iconEmoji
 
 @Composable
 fun HomeFlashSaleSection(
-    onProductClick: (Product) -> Unit
+    onProductClick: (Product) -> Unit,
+    onSeeAllClick: () -> Unit = {}
 ) {
     Column(modifier = Modifier.fillMaxWidth()) {
         // Header Row: ⚡ FLASH SALE + Timer + Xem tất cả >
@@ -726,7 +731,10 @@ fun HomeFlashSaleSection(
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically
         ) {
-            Row(verticalAlignment = Alignment.CenterVertically) {
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                modifier = Modifier.clickable { onSeeAllClick() }
+            ) {
                 Text(
                     text = "⚡FLASH SALE",
                     fontSize = 18.sp,
@@ -747,7 +755,8 @@ fun HomeFlashSaleSection(
                 text = "Xem tất cả >",
                 fontSize = 13.sp,
                 fontWeight = FontWeight.Bold,
-                color = SecondarySoftText
+                color = SecondarySoftText,
+                modifier = Modifier.clickable { onSeeAllClick() }
             )
         }
 
