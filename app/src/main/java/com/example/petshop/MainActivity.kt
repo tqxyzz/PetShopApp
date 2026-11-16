@@ -20,6 +20,7 @@ import com.example.petshop.feature.flashsale.FlashSaleScreen
 import com.example.petshop.feature.home.HomeScreen
 import com.example.petshop.feature.onboarding.OnboardingScreen
 import com.example.petshop.feature.splash.SplashScreen
+import com.example.petshop.feature.voucher.VoucherCenterScreen
 import com.example.petshop.ui.theme.PetShopTheme
 
 sealed class AppScreen {
@@ -29,6 +30,7 @@ sealed class AppScreen {
     object Register : AppScreen()
     object Home : AppScreen()
     object FlashSale : AppScreen()
+    object Voucher : AppScreen()
 }
 
 class MainActivity : ComponentActivity() {
@@ -95,6 +97,13 @@ class MainActivity : ComponentActivity() {
                             }
                             is AppScreen.FlashSale -> {
                                 FlashSaleScreen(
+                                    onBack = {
+                                        currentScreen = AppScreen.Home
+                                    }
+                                )
+                            }
+                            is AppScreen.Voucher -> {
+                                VoucherCenterScreen(
                                     onBack = {
                                         currentScreen = AppScreen.Home
                                     }
