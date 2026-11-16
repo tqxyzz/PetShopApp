@@ -16,6 +16,7 @@ import androidx.compose.ui.Modifier
 import com.example.petshop.feature.auth.ForgotPasswordDialog
 import com.example.petshop.feature.auth.LoginScreen
 import com.example.petshop.feature.auth.RegisterScreen
+import com.example.petshop.feature.brand.OfficialBrandsScreen
 import com.example.petshop.feature.flashsale.FlashSaleScreen
 import com.example.petshop.feature.home.HomeScreen
 import com.example.petshop.feature.onboarding.OnboardingScreen
@@ -31,6 +32,7 @@ sealed class AppScreen {
     object Home : AppScreen()
     object FlashSale : AppScreen()
     object Voucher : AppScreen()
+    object Brand : AppScreen()
 }
 
 class MainActivity : ComponentActivity() {
@@ -104,6 +106,13 @@ class MainActivity : ComponentActivity() {
                             }
                             is AppScreen.Voucher -> {
                                 VoucherCenterScreen(
+                                    onBack = {
+                                        currentScreen = AppScreen.Home
+                                    }
+                                )
+                            }
+                            is AppScreen.Brand -> {
+                                OfficialBrandsScreen(
                                     onBack = {
                                         currentScreen = AppScreen.Home
                                     }
