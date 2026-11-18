@@ -13,6 +13,8 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import com.example.petshop.feature.ai.AiAssistantHubScreen
+import com.example.petshop.feature.ai.AiChatScreen
 import com.example.petshop.feature.auth.ForgotPasswordDialog
 import com.example.petshop.feature.auth.LoginScreen
 import com.example.petshop.feature.auth.RegisterScreen
@@ -22,8 +24,10 @@ import com.example.petshop.feature.category.CategoryScreen
 import com.example.petshop.feature.flashsale.FlashSaleScreen
 import com.example.petshop.feature.home.HomeScreen
 import com.example.petshop.feature.onboarding.OnboardingScreen
+import com.example.petshop.feature.order.OrderListScreen
 import com.example.petshop.feature.splash.SplashScreen
 import com.example.petshop.feature.voucher.VoucherCenterScreen
+import com.example.petshop.feature.wishlist.WishlistScreen
 import com.example.petshop.ui.theme.PetShopTheme
 
 sealed class AppScreen {
@@ -37,6 +41,10 @@ sealed class AppScreen {
     object Brand : AppScreen()
     object Category : AppScreen()
     object CategoryProductList : AppScreen()
+    object OrderList : AppScreen()
+    object Wishlist : AppScreen()
+    object AiHub : AppScreen()
+    object AiChat : AppScreen()
 }
 
 class MainActivity : ComponentActivity() {
@@ -108,6 +116,15 @@ class MainActivity : ComponentActivity() {
                                     },
                                     onNavigateToBrand = {
                                         currentScreen = AppScreen.Brand
+                                    },
+                                    onNavigateToAssistant = {
+                                        currentScreen = AppScreen.AiHub
+                                    },
+                                    onNavigateToOrder = {
+                                        currentScreen = AppScreen.OrderList
+                                    },
+                                    onNavigateToWishlist = {
+                                        currentScreen = AppScreen.Wishlist
                                     }
                                 )
                             }
@@ -148,6 +165,43 @@ class MainActivity : ComponentActivity() {
                                     categoryTitle = activeCategoryTitle,
                                     onBack = {
                                         currentScreen = AppScreen.Category
+                                    }
+                                )
+                            }
+                            is AppScreen.OrderList -> {
+                                OrderListScreen(
+                                    onNavigateToHome = {
+                                        currentScreen = AppScreen.Home
+                                    },
+                                    onNavigateToCategory = {
+                                        currentScreen = AppScreen.Category
+                                    },
+                                    onNavigateToAssistant = {
+                                        currentScreen = AppScreen.AiHub
+                                    },
+                                    onBack = {
+                                        currentScreen = AppScreen.Home
+                                    }
+                                )
+                            }
+                            is AppScreen.Wishlist -> {
+                                WishlistScreen(
+                                    onBack = {
+                                        currentScreen = AppScreen.Home
+                                    }
+                                )
+                            }
+                            is AppScreen.AiHub -> {
+                                AiAssistantHubScreen(
+                                    onNavigateToChat = {
+                                        currentScreen = AppScreen.AiChat
+                                    }
+                                )
+                            }
+                            is AppScreen.AiChat -> {
+                                AiChatScreen(
+                                    onBack = {
+                                        currentScreen = AppScreen.AiHub
                                     }
                                 )
                             }

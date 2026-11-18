@@ -87,7 +87,9 @@ fun HomeScreen(
     onNavigateToVoucher: () -> Unit = {},
     onNavigateToBrand: () -> Unit = {},
     onNavigateToProfile: () -> Unit = {},
-    onNavigateToAssistant: () -> Unit = {}
+    onNavigateToAssistant: () -> Unit = {},
+    onNavigateToOrder: () -> Unit = {},
+    onNavigateToWishlist: () -> Unit = {}
 ) {
     var selectedTab by remember { mutableStateOf<HomeTab>(HomeTab.Home) }
     var selectedPetTab by remember { mutableStateOf("cat") } // "cat" or "dog"
@@ -118,7 +120,11 @@ fun HomeScreen(
                 .verticalScroll(scrollState)
         ) {
             // 1. Top Header Bar
-            HomeTopHeaderBar(onNavigateToCart = onNavigateToCart)
+            HomeTopHeaderBar(
+                onNavigateToCart = onNavigateToCart,
+                onNavigateToWishlist = onNavigateToWishlist,
+                onNavigateToOrder = onNavigateToOrder
+            )
 
             Spacer(modifier = Modifier.height(12.dp))
 
@@ -290,7 +296,9 @@ fun HomeScreen(
 
 @Composable
 fun HomeTopHeaderBar(
-    onNavigateToCart: () -> Unit
+    onNavigateToCart: () -> Unit = {},
+    onNavigateToWishlist: () -> Unit = {},
+    onNavigateToOrder: () -> Unit = {}
 ) {
     Row(
         modifier = Modifier
@@ -335,32 +343,49 @@ fun HomeTopHeaderBar(
             }
         }
 
-        // Action Buttons Top-Right: Bell, Cart (Badge), Profile
+        // Action Buttons Top-Right: Heart (Wishlist), Ticket (Orders), Cart, Profile
         Row(
             verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(10.dp)
+            horizontalArrangement = Arrangement.spacedBy(8.dp)
         ) {
-            // Notification Bell
+            // Wishlist Heart Icon
             Box(
                 modifier = Modifier
-                    .size(40.dp)
+                    .size(38.dp)
                     .clip(CircleShape)
                     .background(SecondarySurface)
-                    .clickable { },
+                    .clickable { onNavigateToWishlist() },
                 contentAlignment = Alignment.Center
             ) {
                 Icon(
-                    painter = painterResource(id = R.drawable.ic_bell),
-                    contentDescription = null,
+                    painter = painterResource(id = R.drawable.ic_heart),
+                    contentDescription = "Wishlist",
+                    tint = AdminMaroon,
+                    modifier = Modifier.size(18.dp)
+                )
+            }
+
+            // Order List Icon
+            Box(
+                modifier = Modifier
+                    .size(38.dp)
+                    .clip(CircleShape)
+                    .background(SecondarySurface)
+                    .clickable { onNavigateToOrder() },
+                contentAlignment = Alignment.Center
+            ) {
+                Icon(
+                    painter = painterResource(id = R.drawable.ic_ticket),
+                    contentDescription = "Orders",
                     tint = PrimaryText,
-                    modifier = Modifier.size(20.dp)
+                    modifier = Modifier.size(18.dp)
                 )
             }
 
             // Cart with Badge
             Box(
                 modifier = Modifier
-                    .size(40.dp)
+                    .size(38.dp)
                     .clip(CircleShape)
                     .background(SecondarySurface)
                     .clickable { onNavigateToCart() },
@@ -368,9 +393,9 @@ fun HomeTopHeaderBar(
             ) {
                 Icon(
                     painter = painterResource(id = R.drawable.ic_shopping_bag),
-                    contentDescription = null,
+                    contentDescription = "Cart",
                     tint = PrimaryText,
-                    modifier = Modifier.size(20.dp)
+                    modifier = Modifier.size(18.dp)
                 )
 
                 // Red Badge Count
@@ -378,14 +403,14 @@ fun HomeTopHeaderBar(
                     modifier = Modifier
                         .align(Alignment.TopEnd)
                         .offset(x = 2.dp, y = (-2).dp)
-                        .size(18.dp)
+                        .size(16.dp)
                         .clip(CircleShape)
                         .background(PrimaryCTA),
                     contentAlignment = Alignment.Center
                 ) {
                     Text(
                         text = "3",
-                        fontSize = 10.sp,
+                        fontSize = 9.sp,
                         fontWeight = FontWeight.Bold,
                         color = Color.White
                     )
@@ -395,7 +420,7 @@ fun HomeTopHeaderBar(
             // User Profile
             Box(
                 modifier = Modifier
-                    .size(40.dp)
+                    .size(38.dp)
                     .clip(CircleShape)
                     .background(AdminMaroon),
                 contentAlignment = Alignment.Center
