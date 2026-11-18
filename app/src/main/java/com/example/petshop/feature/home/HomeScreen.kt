@@ -87,7 +87,9 @@ fun HomeScreen(
     onNavigateToVoucher: () -> Unit = {},
     onNavigateToBrand: () -> Unit = {},
     onNavigateToProfile: () -> Unit = {},
-    onNavigateToAssistant: () -> Unit = {}
+    onNavigateToAssistant: () -> Unit = {},
+    onNavigateToSearchHistory: () -> Unit = {},
+    onNavigateToCameraScan: () -> Unit = {}
 ) {
     var selectedTab by remember { mutableStateOf<HomeTab>(HomeTab.Home) }
     var selectedPetTab by remember { mutableStateOf("cat") } // "cat" or "dog"
@@ -123,7 +125,10 @@ fun HomeScreen(
             Spacer(modifier = Modifier.height(12.dp))
 
             // 2. Search Bar & Hot Tags
-            HomeSearchBarSection()
+            HomeSearchBarSection(
+                onSearchClick = onNavigateToSearchHistory,
+                onCameraClick = onNavigateToCameraScan
+            )
 
             Spacer(modifier = Modifier.height(16.dp))
 
@@ -412,7 +417,10 @@ fun HomeTopHeaderBar(
 }
 
 @Composable
-fun HomeSearchBarSection() {
+fun HomeSearchBarSection(
+    onSearchClick: () -> Unit = {},
+    onCameraClick: () -> Unit = {}
+) {
     Column(modifier = Modifier.padding(horizontal = 20.dp)) {
         // Search Input Box
         Box(
@@ -422,6 +430,7 @@ fun HomeSearchBarSection() {
                 .clip(RoundedCornerShape(24.dp))
                 .background(SecondarySurface)
                 .border(1.dp, BorderDivider, RoundedCornerShape(24.dp))
+                .clickable { onSearchClick() }
                 .padding(horizontal = 16.dp),
             contentAlignment = Alignment.CenterStart
         ) {
@@ -449,7 +458,9 @@ fun HomeSearchBarSection() {
                     painter = painterResource(id = R.drawable.ic_camera),
                     contentDescription = null,
                     tint = MutedText,
-                    modifier = Modifier.size(20.dp)
+                    modifier = Modifier
+                        .size(20.dp)
+                        .clickable { onCameraClick() }
                 )
             }
         }
