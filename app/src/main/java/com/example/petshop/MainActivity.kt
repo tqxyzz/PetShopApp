@@ -19,12 +19,21 @@ import com.example.petshop.feature.auth.ForgotPasswordDialog
 import com.example.petshop.feature.auth.LoginScreen
 import com.example.petshop.feature.auth.RegisterScreen
 import com.example.petshop.feature.brand.OfficialBrandsScreen
+import com.example.petshop.feature.cart.CartScreen
+import com.example.petshop.feature.cart.VoucherPetPointsScreen
 import com.example.petshop.feature.category.CategoryProductListScreen
 import com.example.petshop.feature.category.CategoryScreen
+import com.example.petshop.feature.checkout.OrderSuccessScreen
+import com.example.petshop.feature.checkout.PaymentMethodScreen
+import com.example.petshop.feature.checkout.ShippingAddressScreen
 import com.example.petshop.feature.flashsale.FlashSaleScreen
 import com.example.petshop.feature.home.HomeScreen
 import com.example.petshop.feature.onboarding.OnboardingScreen
 import com.example.petshop.feature.order.OrderListScreen
+import com.example.petshop.feature.product.ProductDetailScreen
+import com.example.petshop.feature.search.CameraScanScreen
+import com.example.petshop.feature.search.ImageSearchResultScreen
+import com.example.petshop.feature.search.SearchHistoryScreen
 import com.example.petshop.feature.splash.SplashScreen
 import com.example.petshop.feature.voucher.VoucherCenterScreen
 import com.example.petshop.feature.wishlist.WishlistScreen
@@ -45,6 +54,15 @@ sealed class AppScreen {
     object Wishlist : AppScreen()
     object AiHub : AppScreen()
     object AiChat : AppScreen()
+    object SearchHistory : AppScreen()
+    object CameraScan : AppScreen()
+    object ImageSearchResult : AppScreen()
+    object ProductDetail : AppScreen()
+    object Cart : AppScreen()
+    object VoucherPetPoints : AppScreen()
+    object ShippingAddress : AppScreen()
+    object PaymentMethod : AppScreen()
+    object OrderSuccess : AppScreen()
 }
 
 class MainActivity : ComponentActivity() {
@@ -125,6 +143,18 @@ class MainActivity : ComponentActivity() {
                                     },
                                     onNavigateToWishlist = {
                                         currentScreen = AppScreen.Wishlist
+                                    },
+                                    onNavigateToCart = {
+                                        currentScreen = AppScreen.Cart
+                                    },
+                                    onNavigateToProductDetail = {
+                                        currentScreen = AppScreen.ProductDetail
+                                    },
+                                    onNavigateToSearchHistory = {
+                                        currentScreen = AppScreen.SearchHistory
+                                    },
+                                    onNavigateToCameraScan = {
+                                        currentScreen = AppScreen.CameraScan
                                     }
                                 )
                             }
@@ -188,6 +218,9 @@ class MainActivity : ComponentActivity() {
                                 WishlistScreen(
                                     onBack = {
                                         currentScreen = AppScreen.Home
+                                    },
+                                    onNavigateToCart = {
+                                        currentScreen = AppScreen.Cart
                                     }
                                 )
                             }
@@ -202,6 +235,123 @@ class MainActivity : ComponentActivity() {
                                 AiChatScreen(
                                     onBack = {
                                         currentScreen = AppScreen.AiHub
+                                    }
+                                )
+                            }
+                            is AppScreen.SearchHistory -> {
+                                SearchHistoryScreen(
+                                    onBack = {
+                                        currentScreen = AppScreen.Home
+                                    },
+                                    onNavigateToCameraScan = {
+                                        currentScreen = AppScreen.CameraScan
+                                    },
+                                    onSearchSubmit = { query ->
+                                        currentScreen = AppScreen.ImageSearchResult
+                                    }
+                                )
+                            }
+                            is AppScreen.CameraScan -> {
+                                CameraScanScreen(
+                                    onBack = {
+                                        currentScreen = AppScreen.SearchHistory
+                                    },
+                                    onClose = {
+                                        currentScreen = AppScreen.Home
+                                    },
+                                    onNavigateToHistory = {
+                                        currentScreen = AppScreen.SearchHistory
+                                    },
+                                    onCapture = {
+                                        currentScreen = AppScreen.ImageSearchResult
+                                    }
+                                )
+                            }
+                            is AppScreen.ImageSearchResult -> {
+                                ImageSearchResultScreen(
+                                    onBack = {
+                                        currentScreen = AppScreen.CameraScan
+                                    },
+                                    onClose = {
+                                        currentScreen = AppScreen.Home
+                                    },
+                                    onNavigateToCameraScan = {
+                                        currentScreen = AppScreen.CameraScan
+                                    },
+                                    onAddToCart = {
+                                        currentScreen = AppScreen.Cart
+                                    },
+                                    onBuyNow = {
+                                        currentScreen = AppScreen.ProductDetail
+                                    }
+                                )
+                            }
+                            is AppScreen.ProductDetail -> {
+                                ProductDetailScreen(
+                                    onBack = {
+                                        currentScreen = AppScreen.Home
+                                    },
+                                    onNavigateToCart = {
+                                        currentScreen = AppScreen.Cart
+                                    },
+                                    onBuyNow = {
+                                        currentScreen = AppScreen.ShippingAddress
+                                    }
+                                )
+                            }
+                            is AppScreen.Cart -> {
+                                CartScreen(
+                                    onBack = {
+                                        currentScreen = AppScreen.Home
+                                    },
+                                    onNavigateToVoucherSelect = {
+                                        currentScreen = AppScreen.VoucherPetPoints
+                                    },
+                                    onNavigateToCheckout = {
+                                        currentScreen = AppScreen.ShippingAddress
+                                    }
+                                )
+                            }
+                            is AppScreen.VoucherPetPoints -> {
+                                VoucherPetPointsScreen(
+                                    onBack = {
+                                        currentScreen = AppScreen.Cart
+                                    },
+                                    onConfirm = {
+                                        currentScreen = AppScreen.Cart
+                                    }
+                                )
+                            }
+                            is AppScreen.ShippingAddress -> {
+                                ShippingAddressScreen(
+                                    onBack = {
+                                        currentScreen = AppScreen.Cart
+                                    },
+                                    onContinueToPayment = {
+                                        currentScreen = AppScreen.PaymentMethod
+                                    }
+                                )
+                            }
+                            is AppScreen.PaymentMethod -> {
+                                PaymentMethodScreen(
+                                    onBack = {
+                                        currentScreen = AppScreen.ShippingAddress
+                                    },
+                                    onPlaceOrder = {
+                                        currentScreen = AppScreen.OrderSuccess
+                                    }
+                                )
+                            }
+                            is AppScreen.OrderSuccess -> {
+                                OrderSuccessScreen(
+                                    onBack = {
+                                        currentScreen = AppScreen.Home
+                                    },
+                                    onNavigateToHome = {
+                                        currentScreen = AppScreen.Home
+                                    },
+                                    onTrackOrder = {
+                                        currentScreen = AppScreen.OrderList
                                     }
                                 )
                             }
