@@ -1,15 +1,16 @@
 package com.example.petshop.data.model
 
 data class FlashSaleItem(
-    val id: String,
-    val brand: String,
-    val title: String,
-    val currentPrice: String,
-    val oldPrice: String,
-    val discountTag: String,
-    val soldStatusText: String,
+    val id: String = "",
+    val brand: String = "",
+    val title: String = "",
+    val currentPrice: String = "",
+    val oldPrice: String = "",
+    val discountTag: String = "",
+    val soldStatusText: String = "",
     val category: String = "Thức ăn hạt",
-    val petEmoji: String = "🐱"
+    val petEmoji: String = "🐱",
+    val imageUrl: String = ""
 )
 
 val sampleFlashSaleItems = listOf(

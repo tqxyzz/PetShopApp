@@ -8,6 +8,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
@@ -27,12 +28,14 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import coil.compose.AsyncImage
 import com.example.petshop.R
 import com.example.petshop.data.model.Product
 import com.example.petshop.ui.theme.AdminMaroon
@@ -73,21 +76,30 @@ fun ProductCard(
                     .background(Color(0xFFFFF7F2)),
                 contentAlignment = Alignment.Center
             ) {
-                // Product Mock Graphic / Illustration
-                Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                    Text(
-                        text = when (product.petType) {
-                            "dog" -> "🐶"
-                            else -> "🐱"
-                        },
-                        fontSize = 44.sp
+                if (product.imageUrl.isNotEmpty()) {
+                    AsyncImage(
+                        model = product.imageUrl,
+                        contentDescription = null,
+                        contentScale = ContentScale.Crop,
+                        modifier = Modifier.fillMaxSize()
                     )
-                    Text(
-                        text = product.brand,
-                        fontSize = 11.sp,
-                        fontWeight = FontWeight.Bold,
-                        color = SecondarySoftText
-                    )
+                } else {
+                    // Product Mock Graphic / Illustration
+                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                        Text(
+                            text = when (product.petType) {
+                                "dog" -> "🐶"
+                                else -> "🐱"
+                            },
+                            fontSize = 44.sp
+                        )
+                        Text(
+                            text = product.brand,
+                            fontSize = 11.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = SecondarySoftText
+                        )
+                    }
                 }
 
                 // Top-Left Badge (e.g. "Bán chạy", "Thảo mộc", "Mới về")

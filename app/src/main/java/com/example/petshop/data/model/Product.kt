@@ -1,18 +1,22 @@
 package com.example.petshop.data.model
 
+import com.google.firebase.firestore.PropertyName
+
 data class Product(
-    val id: String,
-    val brand: String,
-    val title: String,
+    val id: String = "",
+    val brand: String = "",
+    val title: String = "",
     val badge: String? = null,
     val badgeColor: String = "primary",
-    val rating: Double,
-    val soldCount: String,
-    val currentPrice: String,
+    val rating: Double = 0.0,
+    val soldCount: String = "",
+    val currentPrice: String = "",
     val oldPrice: String? = null,
     val discountPercent: String? = null,
     val petType: String = "cat", // "cat" or "dog"
-    val imageUrl: String = ""
+    val imageUrl: String = "",
+    @get:PropertyName("isFlashSale")
+    val isFlashSale: Boolean = false
 )
 
 val sampleFlashSaleProducts = listOf(
