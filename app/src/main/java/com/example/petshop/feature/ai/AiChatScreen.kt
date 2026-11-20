@@ -24,10 +24,12 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -62,6 +64,10 @@ import com.example.petshop.ui.theme.SecondarySurface
 import com.example.petshop.ui.theme.SecondaryText
 import com.example.petshop.ui.theme.SuccessBg
 import com.example.petshop.ui.theme.SuccessText
+import kotlinx.coroutines.launch
+import java.text.SimpleDateFormat
+import java.util.Date
+import java.util.Locale
 
 @Composable
 fun AiChatScreen(
@@ -71,6 +77,46 @@ fun AiChatScreen(
 ) {
     var inputText by remember { mutableStateOf("") }
     val messages = remember { mutableStateListOf(*sampleChatMessages.toTypedArray()) }
+    val coroutineScope = rememberCoroutineScope()
+    var isBotLoading by remember { mutableStateOf(false) }
+
+    LaunchedEffect(Unit) {
+        GeminiAiService.fetchStoreProducts()
+    }
+
+    fun handleSend(queryText: String) {
+        val cleanQuery = queryText.trim()
+        if (cleanQuery.isBlank() || isBotLoading) return
+
+        val currentTime = SimpleDateFormat("HH:mm", Locale.getDefault()).format(Date())
+        messages.add(
+            ChatMessage(
+                id = "msg_${System.currentTimeMillis()}",
+                sender = "user",
+                text = cleanQuery,
+                timestamp = currentTime
+            )
+        )
+        inputText = ""
+        isBotLoading = true
+
+        val loadingId = "loading_${System.currentTimeMillis()}"
+        messages.add(
+            ChatMessage(
+                id = loadingId,
+                sender = "bot",
+                text = "Avocado PetBot đang suy nghĩ...",
+                timestamp = currentTime
+            )
+        )
+
+        coroutineScope.launch {
+            val responseMsg = GeminiAiService.sendMessage(cleanQuery)
+            messages.removeAll { it.id == loadingId }
+            messages.add(responseMsg)
+            isBotLoading = false
+        }
+    }
 
     val suggestedQuestions = listOf(
         "🔄 So sánh 2 loại hạt này",
@@ -83,19 +129,7 @@ fun AiChatScreen(
             ChatBottomInputBar(
                 inputText = inputText,
                 onInputChange = { inputText = it },
-                onSend = {
-                    if (inputText.isNotBlank()) {
-                        messages.add(
-                            ChatMessage(
-                                id = "msg_${System.currentTimeMillis()}",
-                                sender = "user",
-                                text = inputText,
-                                timestamp = "10:16"
-                            )
-                        )
-                        inputText = ""
-                    }
-                }
+                onSend = { handleSend(inputText) }
             )
         },
         containerColor = GlobalBackground
@@ -163,7 +197,7 @@ fun AiChatScreen(
                                         .padding(horizontal = 6.dp, vertical = 2.dp)
                                 ) {
                                     Text(
-                                        text = "🟢 Đang hoạt động",
+                                        text = if (isBotLoading) "⏳ Đang trả lời..." else "🟢 Đang hoạt động",
                                         fontSize = 10.sp,
                                         fontWeight = FontWeight.Bold,
                                         color = SuccessText
@@ -271,22 +305,14 @@ fun AiChatScreen(
 
                         Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                             suggestedQuestions.forEach { question ->
+                                val cleanQ = question.replace("🔄 ", "").replace("🍴 ", "").replace("💡 ", "")
                                 Box(
                                     modifier = Modifier
                                         .fillMaxWidth()
                                         .clip(RoundedCornerShape(16.dp))
                                         .background(CardSurface)
                                         .border(1.dp, BorderDivider, RoundedCornerShape(16.dp))
-                                        .clickable {
-                                            messages.add(
-                                                ChatMessage(
-                                                    id = "msg_${System.currentTimeMillis()}",
-                                                    sender = "user",
-                                                    text = question.replace("🔄 ", "").replace("🍴 ", "").replace("💡 ", ""),
-                                                    timestamp = "10:16"
-                                                )
-                                            )
-                                        }
+                                        .clickable { handleSend(cleanQ) }
                                         .padding(horizontal = 14.dp, vertical = 10.dp)
                                 ) {
                                     Text(

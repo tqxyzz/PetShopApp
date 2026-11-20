@@ -226,6 +226,9 @@ class MainActivity : ComponentActivity() {
                             }
                             is AppScreen.AiHub -> {
                                 AiAssistantHubScreen(
+                                    onBack = {
+                                        currentScreen = AppScreen.Home
+                                    },
                                     onNavigateToChat = {
                                         currentScreen = AppScreen.AiChat
                                     }

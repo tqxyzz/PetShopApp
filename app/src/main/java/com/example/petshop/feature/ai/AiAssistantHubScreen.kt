@@ -65,6 +65,7 @@ import com.example.petshop.ui.theme.WarningText
 
 @Composable
 fun AiAssistantHubScreen(
+    onBack: () -> Unit = {},
     onNavigateToChat: () -> Unit = {},
     onNavigateToProfile: () -> Unit = {},
     onNavigateToNotification: () -> Unit = {}
@@ -95,6 +96,7 @@ fun AiAssistantHubScreen(
         ) {
             // Header Bar
             AiHubHeader(
+                onBack = onBack,
                 onNotificationClick = onNavigateToNotification,
                 onProfileClick = onNavigateToProfile
             )
@@ -525,6 +527,7 @@ fun AiAssistantHubScreen(
 
 @Composable
 private fun AiHubHeader(
+    onBack: () -> Unit,
     onNotificationClick: () -> Unit,
     onProfileClick: () -> Unit
 ) {
@@ -536,9 +539,29 @@ private fun AiHubHeader(
         verticalAlignment = Alignment.CenterVertically
     ) {
         Row(verticalAlignment = Alignment.CenterVertically) {
+            // Circular Back Arrow Button (matching CartScreen & WishlistScreen)
             Box(
                 modifier = Modifier
-                    .size(38.dp)
+                    .size(36.dp)
+                    .clip(CircleShape)
+                    .background(SecondarySurface)
+                    .border(1.dp, BorderDivider, CircleShape)
+                    .clickable { onBack() },
+                contentAlignment = Alignment.Center
+            ) {
+                Icon(
+                    painter = painterResource(id = R.drawable.ic_arrow_back),
+                    contentDescription = "Quay lại",
+                    tint = PrimaryText,
+                    modifier = Modifier.size(18.dp)
+                )
+            }
+
+            Spacer(modifier = Modifier.width(10.dp))
+
+            Box(
+                modifier = Modifier
+                    .size(36.dp)
                     .clip(CircleShape)
                     .background(PrimaryCTA),
                 contentAlignment = Alignment.Center
@@ -547,14 +570,16 @@ private fun AiHubHeader(
                     painter = painterResource(id = R.drawable.ic_ai_assistant),
                     contentDescription = null,
                     tint = Color.White,
-                    modifier = Modifier.size(20.dp)
+                    modifier = Modifier.size(18.dp)
                 )
             }
-            Spacer(modifier = Modifier.width(10.dp))
+
+            Spacer(modifier = Modifier.width(8.dp))
+
             Column {
                 Text(
                     text = "Trợ Lý AI Hub",
-                    fontSize = 18.sp,
+                    fontSize = 17.sp,
                     fontWeight = FontWeight.Bold,
                     color = PrimaryText
                 )
