@@ -59,6 +59,8 @@ import com.example.petshop.ui.theme.SecondarySoft
 import com.example.petshop.ui.theme.SecondarySoftText
 import com.example.petshop.ui.theme.SecondarySurface
 import com.example.petshop.ui.theme.SecondaryText
+import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.auth.UserProfileChangeRequest
 
 @Composable
 fun RegisterScreen(
@@ -73,6 +75,7 @@ fun RegisterScreen(
     var confirmPasswordInput by remember { mutableStateOf("") }
     var agreeTerms by remember { mutableStateOf(true) }
     var errorMessage by remember { mutableStateOf<String?>(null) }
+    var isLoading by remember { mutableStateOf(false) }
     val scrollState = rememberScrollState()
 
     Column(
@@ -321,10 +324,25 @@ fun RegisterScreen(
                                 errorMessage = "Vui lòng đồng ý với Điều khoản & Chính sách bảo mật"
                             }
                             else -> {
-                                onNavigateToHome()
+                                isLoading = true
+                                FirebaseAuth.getInstance().createUserWithEmailAndPassword(accountInput.trim(), passwordInput)
+                                    .addOnCompleteListener { task ->
+                                        isLoading = false
+                                        if (task.isSuccessful) {
+                                            val user = FirebaseAuth.getInstance().currentUser
+                                            val profileUpdates = UserProfileChangeRequest.Builder()
+                                                .setDisplayName(fullNameInput)
+                                                .build()
+                                            user?.updateProfile(profileUpdates)
+                                            onNavigateToHome()
+                                        } else {
+                                            errorMessage = task.exception?.localizedMessage ?: "Đăng ký thất bại"
+                                        }
+                                    }
                             }
                         }
                     },
+                    enabled = !isLoading,
                     modifier = Modifier
                         .fillMaxWidth()
                         .height(52.dp),
@@ -344,7 +362,7 @@ fun RegisterScreen(
                         )
                         Spacer(modifier = Modifier.width(8.dp))
                         Text(
-                            text = "Đăng ký tài khoản",
+                            text = if (isLoading) "Đang đăng ký..." else "Đăng ký tài khoản",
                             fontSize = 16.sp,
                             fontWeight = FontWeight.Bold
                         )

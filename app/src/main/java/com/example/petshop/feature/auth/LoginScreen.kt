@@ -62,6 +62,7 @@ import com.example.petshop.ui.theme.SecondarySoft
 import com.example.petshop.ui.theme.SecondarySoftText
 import com.example.petshop.ui.theme.SecondarySurface
 import com.example.petshop.ui.theme.SecondaryText
+import com.google.firebase.auth.FirebaseAuth
 
 @Composable
 fun LoginScreen(
@@ -74,6 +75,7 @@ fun LoginScreen(
     var passwordInput by remember { mutableStateOf("") }
     var rememberLogin by remember { mutableStateOf(true) }
     var errorMessage by remember { mutableStateOf<String?>(null) }
+    var isLoading by remember { mutableStateOf(false) }
     val scrollState = rememberScrollState()
 
     Column(
@@ -227,9 +229,19 @@ fun LoginScreen(
                         if (accountInput.isBlank() || passwordInput.isBlank()) {
                             errorMessage = "Vui lòng nhập đầy đủ thông tin đăng nhập"
                         } else {
-                            onNavigateToHome()
+                            isLoading = true
+                            FirebaseAuth.getInstance().signInWithEmailAndPassword(accountInput.trim(), passwordInput)
+                                .addOnCompleteListener { task ->
+                                    isLoading = false
+                                    if (task.isSuccessful) {
+                                        onNavigateToHome()
+                                    } else {
+                                        errorMessage = task.exception?.localizedMessage ?: "Đăng nhập thất bại"
+                                    }
+                                }
                         }
                     },
+                    enabled = !isLoading,
                     modifier = Modifier
                         .fillMaxWidth()
                         .height(52.dp),
@@ -241,7 +253,7 @@ fun LoginScreen(
                     elevation = ButtonDefaults.buttonElevation(defaultElevation = 4.dp)
                 ) {
                     Text(
-                        text = "Đăng nhập →",
+                        text = if (isLoading) "Đang đăng nhập..." else "Đăng nhập →",
                         fontSize = 16.sp,
                         fontWeight = FontWeight.Bold
                     )

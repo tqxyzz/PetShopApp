@@ -36,7 +36,11 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
+import coil.compose.AsyncImage
+import com.example.petshop.utils.importProductsFromAssets
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
@@ -91,10 +95,14 @@ fun HomeScreen(
     onNavigateToOrder: () -> Unit = {},
     onNavigateToWishlist: () -> Unit = {},
     onNavigateToSearchHistory: () -> Unit = {},
-    onNavigateToCameraScan: () -> Unit = {}
+    onNavigateToCameraScan: () -> Unit = {},
+    viewModel: HomeViewModel = androidx.lifecycle.viewmodel.compose.viewModel()
 ) {
     var selectedTab by remember { mutableStateOf<HomeTab>(HomeTab.Home) }
     var selectedPetTab by remember { mutableStateOf("cat") } // "cat" or "dog"
+
+    val allProducts = if (viewModel.productList.isNotEmpty()) viewModel.productList else sampleProducts
+    val flashSaleProducts = if (viewModel.flashSaleList.isNotEmpty()) viewModel.flashSaleList else sampleFlashSaleProducts
 
     Scaffold(
         bottomBar = {
@@ -136,6 +144,44 @@ fun HomeScreen(
                 onCameraClick = onNavigateToCameraScan
             )
 
+            Spacer(modifier = Modifier.height(12.dp))
+
+            // Admin Import Button Banner
+//            val context = LocalContext.current
+//            var importStatus by remember { mutableStateOf<String?>(null) }
+//
+//            Box(
+//                modifier = Modifier
+//                    .fillMaxWidth()
+//                    .padding(horizontal = 20.dp)
+//                    .clip(RoundedCornerShape(16.dp))
+//                    .background(SecondarySurface)
+//                    .border(1.dp, PrimaryCTA, RoundedCornerShape(16.dp))
+//                    .clickable {
+//                        importProductsFromAssets(context)
+//                        importStatus = "Đã import dữ liệu thành công! Hãy reload lại trang."
+//                    }
+//                    .padding(12.dp),
+//                contentAlignment = Alignment.Center
+//            ) {
+//                Column(horizontalAlignment = Alignment.CenterHorizontally) {
+//                    Text(
+//                        text = "🚀 Bấm vào đây để Import sản phẩm vào Firestore",
+//                        fontSize = 13.sp,
+//                        fontWeight = FontWeight.Bold,
+//                        color = PrimaryCTA
+//                    )
+//                    if (importStatus != null) {
+//                        Spacer(modifier = Modifier.height(4.dp))
+//                        Text(
+//                            text = importStatus!!,
+//                            fontSize = 12.sp,
+//                            color = SuccessText
+//                        )
+//                    }
+//                }
+//            }
+
             Spacer(modifier = Modifier.height(16.dp))
 
             // 3. Hero Banner Carousel
@@ -150,6 +196,7 @@ fun HomeScreen(
 
             // 5. Flash Sale Section
             HomeFlashSaleSection(
+                products = flashSaleProducts,
                 onProductClick = onNavigateToProductDetail,
                 onSeeAllClick = onNavigateToFlashSale
             )
@@ -224,8 +271,8 @@ fun HomeScreen(
 
             // 9. 2-Column Product Grid
             Column(modifier = Modifier.padding(horizontal = 20.dp)) {
-                val products = sampleProducts.filter { it.petType == selectedPetTab || selectedPetTab == "cat" }
-                val chunkedProducts = products.chunked(2)
+                val filteredProducts = allProducts.filter { it.petType == selectedPetTab || selectedPetTab == "cat" }
+                val chunkedProducts = filteredProducts.chunked(2)
 
                 chunkedProducts.forEach { rowProducts ->
                     Row(
@@ -757,6 +804,7 @@ private fun CategoryItem.titleEmojiOrIcon(): String = this.iconEmoji
 
 @Composable
 fun HomeFlashSaleSection(
+    products: List<Product>,
     onProductClick: (Product) -> Unit,
     onSeeAllClick: () -> Unit = {}
 ) {
@@ -805,7 +853,7 @@ fun HomeFlashSaleSection(
             contentPadding = PaddingValues(horizontal = 20.dp),
             horizontalArrangement = Arrangement.spacedBy(12.dp)
         ) {
-            items(sampleFlashSaleProducts) { product ->
+            items(products) { product ->
                 FlashSaleCard(product = product, onClick = { onProductClick(product) })
             }
         }
@@ -853,7 +901,16 @@ fun FlashSaleCard(
                     .background(Color(0xFFFFF7F2)),
                 contentAlignment = Alignment.Center
             ) {
-                Text(text = "🥫", fontSize = 42.sp)
+                if (product.imageUrl.isNotEmpty()) {
+                    AsyncImage(
+                        model = product.imageUrl,
+                        contentDescription = null,
+                        contentScale = ContentScale.Crop,
+                        modifier = Modifier.fillMaxSize()
+                    )
+                } else {
+                    Text(text = "🥫", fontSize = 42.sp)
+                }
 
                 // Discount Badge top-left
                 if (!product.discountPercent.isNullOrEmpty()) {
