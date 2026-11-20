@@ -1,17 +1,17 @@
 package com.example.petshop.data.model
 
 data class DriverInfo(
-    val name: String,
-    val distanceEta: String,
+    val name: String = "",
+    val distanceEta: String = "",
     val phone: String = "0901234567"
 )
 
 data class OrderItem(
-    val id: String,
-    val title: String,
-    val subtitle: String,
-    val quantity: Int,
-    val price: String,
+    val id: String = "",
+    val title: String = "",
+    val subtitle: String = "",
+    val quantity: Int = 1,
+    val price: String = "",
     val imageUrl: String = ""
 )
 
@@ -23,14 +23,15 @@ enum class OrderStatusType {
 }
 
 data class Order(
-    val orderId: String,
-    val badge: String,
-    val statusType: OrderStatusType,
-    val statusText: String,
+    val orderId: String = "",
+    val userId: String = "",
+    val badge: String = "",
+    val statusType: OrderStatusType = OrderStatusType.COMPLETED,
+    val statusText: String = "",
     val driverInfo: DriverInfo? = null,
-    val items: List<OrderItem>,
-    val totalItemCount: Int,
-    val totalPayment: String,
+    val items: List<OrderItem> = emptyList(),
+    val totalItemCount: Int = 0,
+    val totalPayment: String = "",
     val deliveryNotice: String? = null,
     val cancelNotice: String? = null
 )

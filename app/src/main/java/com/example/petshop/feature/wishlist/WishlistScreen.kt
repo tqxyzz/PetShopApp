@@ -26,6 +26,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -49,17 +50,16 @@ import com.example.petshop.ui.theme.BorderDivider
 import com.example.petshop.ui.theme.CardSurface
 import com.example.petshop.ui.theme.DangerText
 import com.example.petshop.ui.theme.GlobalBackground
-import com.example.petshop.ui.theme.IconPrimaryBg
-import com.example.petshop.ui.theme.IconPrimaryTint
 import com.example.petshop.ui.theme.MutedText
 import com.example.petshop.ui.theme.PrimaryCTA
 import com.example.petshop.ui.theme.PrimaryText
 import com.example.petshop.ui.theme.SecondarySoft
-import com.example.petshop.ui.theme.SecondarySoftText
 import com.example.petshop.ui.theme.SecondarySurface
 import com.example.petshop.ui.theme.SecondaryText
 import com.example.petshop.ui.theme.SuccessBg
 import com.example.petshop.ui.theme.SuccessText
+import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.firestore.FirebaseFirestore
 
 @Composable
 fun WishlistScreen(
@@ -68,19 +68,94 @@ fun WishlistScreen(
     onNavigateToSearch: () -> Unit = {},
     onNavigateToProfile: () -> Unit = {}
 ) {
-    var selectedCategoryFilter by remember { mutableStateOf("🐾 Tất cả (16)") }
+    var selectedCategoryFilter by remember { mutableStateOf("🐾 Tất cả") }
     var isSelectAllChecked by remember { mutableStateOf(false) }
+    var wishlistItems by remember { mutableStateOf<List<WishlistItem>>(sampleWishlistItems) }
+
+    DisposableEffect(Unit) {
+        val currentUser = FirebaseAuth.getInstance().currentUser
+        if (currentUser != null) {
+            val listener = FirebaseFirestore.getInstance()
+                .collection("wishlists")
+                .whereEqualTo("userId", currentUser.uid)
+                .addSnapshotListener { snapshot, error ->
+                    if (error == null && snapshot != null && !snapshot.isEmpty) {
+                        val fetchedItems = snapshot.documents.mapNotNull { doc ->
+                            try {
+                                doc.toObject(WishlistItem::class.java)?.copy(id = doc.id)
+                            } catch (e: Exception) {
+                                null
+                            }
+                        }
+                        if (fetchedItems.isNotEmpty()) {
+                            wishlistItems = fetchedItems
+                        }
+                    }
+                }
+            onDispose { listener.remove() }
+        } else {
+            onDispose { }
+        }
+    }
+
+    fun removeWishlistItem(item: WishlistItem) {
+        val currentUser = FirebaseAuth.getInstance().currentUser
+        if (currentUser != null && item.id.isNotBlank()) {
+            try {
+                FirebaseFirestore.getInstance()
+                    .collection("wishlists")
+                    .document(item.id)
+                    .delete()
+            } catch (e: Exception) {
+                // Ignore exception safely
+            }
+        }
+        wishlistItems = wishlistItems.filter { it.id != item.id }
+    }
+
+    fun clearAllWishlist() {
+        val currentUser = FirebaseAuth.getInstance().currentUser
+        if (currentUser != null) {
+            try {
+                val db = FirebaseFirestore.getInstance()
+                db.collection("wishlists")
+                    .whereEqualTo("userId", currentUser.uid)
+                    .get()
+                    .addOnSuccessListener { snapshot ->
+                        val batch = db.batch()
+                        snapshot.documents.forEach { doc ->
+                            batch.delete(doc.reference)
+                        }
+                        batch.commit()
+                    }
+            } catch (e: Exception) {
+                // Ignore exception safely
+            }
+        }
+        wishlistItems = emptyList()
+    }
+
+    val filteredItems = remember(wishlistItems, selectedCategoryFilter) {
+        if (selectedCategoryFilter.contains("Tất cả")) {
+            wishlistItems
+        } else if (selectedCategoryFilter.contains("Thức ăn")) {
+            wishlistItems.filter { it.title.contains("Hạt", true) || it.title.contains("Súp", true) || it.title.contains("Pate", true) }
+        } else {
+            wishlistItems.filter { it.title.contains("Cát", true) || it.title.contains("Tofu", true) }
+        }
+    }
 
     val categoryFilters = listOf(
-        "🐾 Tất cả (16)",
-        "Thức ăn & Pate (8)",
-        "Cát vệ sinh (4)"
+        "🐾 Tất cả (${wishlistItems.size})",
+        "Thức ăn & Pate",
+        "Cát vệ sinh"
     )
 
     Scaffold(
         bottomBar = {
             WishlistBottomActionBar(
-                onClearAll = { },
+                itemCount = wishlistItems.size,
+                onClearAll = { clearAllWishlist() },
                 onAddToCartAll = onNavigateToCart
             )
         },
@@ -115,7 +190,7 @@ fun WishlistScreen(
                     )
                     Spacer(modifier = Modifier.width(6.dp))
                     Text(
-                        text = "16 món bé yêu",
+                        text = "${wishlistItems.size} món bé yêu",
                         fontSize = 18.sp,
                         fontWeight = FontWeight.Bold,
                         color = PrimaryText
@@ -241,7 +316,7 @@ fun WishlistScreen(
                     modifier = Modifier.weight(1f)
                 ) {
                     items(categoryFilters) { filter ->
-                        val isSelected = filter == selectedCategoryFilter
+                        val isSelected = filter == selectedCategoryFilter || (selectedCategoryFilter.startsWith("🐾 Tất cả") && filter.startsWith("🐾 Tất cả"))
                         Box(
                             modifier = Modifier
                                 .clip(RoundedCornerShape(16.dp))
@@ -293,18 +368,44 @@ fun WishlistScreen(
             Spacer(modifier = Modifier.height(10.dp))
 
             // 2-Column Product Grid
-            LazyVerticalGrid(
-                columns = GridCells.Fixed(2),
-                contentPadding = PaddingValues(start = 16.dp, end = 16.dp, bottom = 16.dp),
-                horizontalArrangement = Arrangement.spacedBy(12.dp),
-                verticalArrangement = Arrangement.spacedBy(12.dp),
-                modifier = Modifier.fillMaxSize()
-            ) {
-                items(sampleWishlistItems) { item ->
-                    WishlistProductCard(
-                        item = item,
-                        onAddToCart = { }
-                    )
+            if (filteredItems.isEmpty()) {
+                Box(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(32.dp),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                        Text(text = "💔", fontSize = 48.sp)
+                        Spacer(modifier = Modifier.height(8.dp))
+                        Text(
+                            text = "Danh sách yêu thích trống",
+                            fontSize = 16.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = PrimaryText
+                        )
+                        Text(
+                            text = "Hãy thả tim sản phẩm bạn thích để lưu lại đây nhé",
+                            fontSize = 12.sp,
+                            color = MutedText
+                        )
+                    }
+                }
+            } else {
+                LazyVerticalGrid(
+                    columns = GridCells.Fixed(2),
+                    contentPadding = PaddingValues(start = 16.dp, end = 16.dp, bottom = 16.dp),
+                    horizontalArrangement = Arrangement.spacedBy(12.dp),
+                    verticalArrangement = Arrangement.spacedBy(12.dp),
+                    modifier = Modifier.fillMaxSize()
+                ) {
+                    items(filteredItems) { item ->
+                        WishlistProductCard(
+                            item = item,
+                            onRemoveWishlist = { removeWishlistItem(item) },
+                            onAddToCart = { }
+                        )
+                    }
                 }
             }
         }
@@ -408,6 +509,7 @@ private fun WishlistTopBar(
 @Composable
 private fun WishlistProductCard(
     item: WishlistItem,
+    onRemoveWishlist: () -> Unit,
     onAddToCart: (WishlistItem) -> Unit
 ) {
     Box(
@@ -483,7 +585,7 @@ private fun WishlistProductCard(
                     }
                 }
 
-                // Top-Right Heart Filled Icon
+                // Top-Right Heart Filled Icon (Click to remove from wishlist)
                 Box(
                     modifier = Modifier
                         .align(Alignment.TopEnd)
@@ -491,12 +593,13 @@ private fun WishlistProductCard(
                         .size(28.dp)
                         .clip(CircleShape)
                         .background(CardSurface)
-                        .shadow(2.dp, CircleShape),
+                        .shadow(2.dp, CircleShape)
+                        .clickable { onRemoveWishlist() },
                     contentAlignment = Alignment.Center
                 ) {
                     Icon(
                         painter = painterResource(id = R.drawable.ic_heart),
-                        contentDescription = null,
+                        contentDescription = "Remove favorite",
                         tint = DangerText,
                         modifier = Modifier.size(14.dp)
                     )
@@ -590,6 +693,7 @@ private fun WishlistProductCard(
 
 @Composable
 private fun WishlistBottomActionBar(
+    itemCount: Int,
     onClearAll: () -> Unit,
     onAddToCartAll: () -> Unit
 ) {
@@ -642,7 +746,7 @@ private fun WishlistBottomActionBar(
                     )
                     Spacer(modifier = Modifier.width(6.dp))
                     Text(
-                        text = "Thêm tất cả vào giỏ (16 món)",
+                        text = "Thêm tất cả vào giỏ ($itemCount món)",
                         fontSize = 13.sp,
                         fontWeight = FontWeight.Bold,
                         color = Color.White

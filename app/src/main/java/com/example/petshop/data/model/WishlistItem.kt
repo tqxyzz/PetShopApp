@@ -1,14 +1,15 @@
 package com.example.petshop.data.model
 
 data class WishlistItem(
-    val id: String,
-    val title: String,
+    val id: String = "",
+    val userId: String = "",
+    val title: String = "",
     val badge: String? = null,
     val badgeType: String = "orange", // "orange", "green", "pink", "dark"
     val discount: String? = null,
-    val rating: String,
-    val reviewCount: String,
-    val price: String,
+    val rating: String = "5.0",
+    val reviewCount: String = "0",
+    val price: String = "",
     val oldPrice: String? = null,
     val isFavorite: Boolean = true
 )

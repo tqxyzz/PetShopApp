@@ -24,6 +24,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -66,6 +67,8 @@ import com.example.petshop.ui.theme.SuccessBg
 import com.example.petshop.ui.theme.SuccessText
 import com.example.petshop.ui.theme.WarningBg
 import com.example.petshop.ui.theme.WarningText
+import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.firestore.FirebaseFirestore
 
 @Composable
 fun OrderListScreen(
@@ -76,10 +79,56 @@ fun OrderListScreen(
     onBack: () -> Unit = {}
 ) {
     var searchQuery by remember { mutableStateOf("") }
-    var selectedFilterTab by remember { mutableStateOf("Đang giao •") }
+    var selectedFilterTab by remember { mutableStateOf("Tất cả (4)") }
+    var orderList by remember { mutableStateOf<List<Order>>(sampleOrders) }
+
+    DisposableEffect(Unit) {
+        val currentUser = FirebaseAuth.getInstance().currentUser
+        if (currentUser != null) {
+            val listener = FirebaseFirestore.getInstance()
+                .collection("orders")
+                .whereEqualTo("userId", currentUser.uid)
+                .addSnapshotListener { snapshot, error ->
+                    if (error == null && snapshot != null && !snapshot.isEmpty) {
+                        val fetchedOrders = snapshot.documents.mapNotNull { doc ->
+                            try {
+                                doc.toObject(Order::class.java)?.copy(orderId = doc.id)
+                            } catch (e: Exception) {
+                                null
+                            }
+                        }
+                        if (fetchedOrders.isNotEmpty()) {
+                            orderList = fetchedOrders
+                        }
+                    }
+                }
+            onDispose { listener.remove() }
+        } else {
+            onDispose { }
+        }
+    }
+
+    val filteredOrders = remember(orderList, selectedFilterTab, searchQuery) {
+        orderList.filter { order ->
+            val matchesSearch = searchQuery.isBlank() ||
+                    order.orderId.contains(searchQuery, ignoreCase = true) ||
+                    order.items.any { it.title.contains(searchQuery, ignoreCase = true) }
+
+            val matchesFilter = when (selectedFilterTab) {
+                "Chờ xác nhận •" -> order.statusType == OrderStatusType.PENDING_CONFIRM
+                "Đang chuẩn bị" -> order.statusType == OrderStatusType.PENDING_CONFIRM
+                "Đang giao •" -> order.statusType == OrderStatusType.EXPRESS_SHIPPING
+                "Đã giao" -> order.statusType == OrderStatusType.COMPLETED || order.statusType == OrderStatusType.DELIVERED
+                "Đã hủy" -> false
+                else -> true
+            }
+
+            matchesSearch && matchesFilter
+        }
+    }
 
     val filterOptions = listOf(
-        "Tất cả (4)",
+        "Tất cả (${orderList.size})",
         "Chờ xác nhận •",
         "Đang chuẩn bị",
         "Đang giao •",
@@ -129,7 +178,7 @@ fun OrderListScreen(
                 modifier = Modifier.fillMaxWidth()
             ) {
                 items(filterOptions) { filter ->
-                    val isSelected = filter == selectedFilterTab
+                    val isSelected = filter == selectedFilterTab || (selectedFilterTab.startsWith("Tất cả") && filter.startsWith("Tất cả"))
                     Box(
                         modifier = Modifier
                             .clip(RoundedCornerShape(20.dp))
@@ -155,13 +204,38 @@ fun OrderListScreen(
             Spacer(modifier = Modifier.height(16.dp))
 
             // Orders List
-            LazyColumn(
-                contentPadding = PaddingValues(start = 16.dp, end = 16.dp, bottom = 24.dp),
-                verticalArrangement = Arrangement.spacedBy(16.dp),
-                modifier = Modifier.fillMaxWidth()
-            ) {
-                items(sampleOrders) { order ->
-                    OrderCardItem(order = order)
+            if (filteredOrders.isEmpty()) {
+                Box(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(32.dp),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                        Text(text = "📦", fontSize = 48.sp)
+                        Spacer(modifier = Modifier.height(8.dp))
+                        Text(
+                            text = "Chưa có đơn hàng nào",
+                            fontSize = 16.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = PrimaryText
+                        )
+                        Text(
+                            text = "Các đơn hàng bạn đã mua sẽ xuất hiện tại đây",
+                            fontSize = 12.sp,
+                            color = MutedText
+                        )
+                    }
+                }
+            } else {
+                LazyColumn(
+                    contentPadding = PaddingValues(start = 16.dp, end = 16.dp, bottom = 24.dp),
+                    verticalArrangement = Arrangement.spacedBy(16.dp),
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    items(filteredOrders) { order ->
+                        OrderCardItem(order = order)
+                    }
                 }
             }
         }
