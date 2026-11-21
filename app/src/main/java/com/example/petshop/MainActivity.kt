@@ -13,22 +13,23 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import com.example.petshop.feature.ai.AiAssistantHubScreen
+import com.example.petshop.feature.ai.AiChatScreen
 import com.example.petshop.feature.auth.ForgotPasswordDialog
 import com.example.petshop.feature.auth.LoginScreen
 import com.example.petshop.feature.auth.RegisterScreen
 import com.example.petshop.feature.brand.OfficialBrandsScreen
-import com.example.petshop.feature.category.CategoryProductListScreen
-import com.example.petshop.feature.category.CategoryScreen
-import com.example.petshop.feature.flashsale.FlashSaleScreen
-import com.example.petshop.feature.home.HomeScreen
-import com.example.petshop.feature.onboarding.OnboardingScreen
-import com.example.petshop.feature.splash.SplashScreen
-import com.example.petshop.feature.voucher.VoucherCenterScreen
 import com.example.petshop.feature.cart.CartScreen
 import com.example.petshop.feature.cart.VoucherPetPointsScreen
+import com.example.petshop.feature.category.CategoryProductListScreen
+import com.example.petshop.feature.category.CategoryScreen
 import com.example.petshop.feature.checkout.OrderSuccessScreen
 import com.example.petshop.feature.checkout.PaymentMethodScreen
 import com.example.petshop.feature.checkout.ShippingAddressScreen
+import com.example.petshop.feature.flashsale.FlashSaleScreen
+import com.example.petshop.feature.home.HomeScreen
+import com.example.petshop.feature.onboarding.OnboardingScreen
+import com.example.petshop.feature.order.OrderListScreen
 import com.example.petshop.feature.product.ProductDetailScreen
 import com.example.petshop.feature.cart.CartViewModel
 import com.example.petshop.feature.checkout.CheckoutViewModel
@@ -36,6 +37,9 @@ import com.example.petshop.feature.search.CameraScanScreen
 import com.google.firebase.auth.FirebaseAuth
 import com.example.petshop.feature.search.ImageSearchResultScreen
 import com.example.petshop.feature.search.SearchHistoryScreen
+import com.example.petshop.feature.splash.SplashScreen
+import com.example.petshop.feature.voucher.VoucherCenterScreen
+import com.example.petshop.feature.wishlist.WishlistScreen
 import com.example.petshop.ui.theme.PetShopTheme
 
 sealed class AppScreen {
@@ -49,6 +53,10 @@ sealed class AppScreen {
     object Brand : AppScreen()
     object Category : AppScreen()
     object CategoryProductList : AppScreen()
+    object OrderList : AppScreen()
+    object Wishlist : AppScreen()
+    object AiHub : AppScreen()
+    object AiChat : AppScreen()
     object SearchHistory : AppScreen()
     object CameraScan : AppScreen()
     object ImageSearchResult : AppScreen()
@@ -142,6 +150,15 @@ class MainActivity : ComponentActivity() {
                                     onNavigateToBrand = {
                                         currentScreen = AppScreen.Brand
                                     },
+                                    onNavigateToAssistant = {
+                                        currentScreen = AppScreen.AiHub
+                                    },
+                                    onNavigateToOrder = {
+                                        currentScreen = AppScreen.OrderList
+                                    },
+                                    onNavigateToWishlist = {
+                                        currentScreen = AppScreen.Wishlist
+                                    },
                                     onNavigateToCart = {
                                         checkAuthAndProceed { currentScreen = AppScreen.Cart }
                                     },
@@ -198,6 +215,49 @@ class MainActivity : ComponentActivity() {
                                     categoryTitle = activeCategoryTitle,
                                     onBack = {
                                         currentScreen = AppScreen.Home
+                                    }
+                                )
+                            }
+                            is AppScreen.OrderList -> {
+                                OrderListScreen(
+                                    onNavigateToHome = {
+                                        currentScreen = AppScreen.Home
+                                    },
+                                    onNavigateToCategory = {
+                                        currentScreen = AppScreen.Category
+                                    },
+                                    onNavigateToAssistant = {
+                                        currentScreen = AppScreen.AiHub
+                                    },
+                                    onBack = {
+                                        currentScreen = AppScreen.Home
+                                    }
+                                )
+                            }
+                            is AppScreen.Wishlist -> {
+                                WishlistScreen(
+                                    onBack = {
+                                        currentScreen = AppScreen.Home
+                                    },
+                                    onNavigateToCart = {
+                                        currentScreen = AppScreen.Cart
+                                    }
+                                )
+                            }
+                            is AppScreen.AiHub -> {
+                                AiAssistantHubScreen(
+                                    onBack = {
+                                        currentScreen = AppScreen.Home
+                                    },
+                                    onNavigateToChat = {
+                                        currentScreen = AppScreen.AiChat
+                                    }
+                                )
+                            }
+                            is AppScreen.AiChat -> {
+                                AiChatScreen(
+                                    onBack = {
+                                        currentScreen = AppScreen.AiHub
                                     }
                                 )
                             }
@@ -348,7 +408,7 @@ class MainActivity : ComponentActivity() {
                                         currentScreen = AppScreen.Home
                                     },
                                     onTrackOrder = {
-                                        currentScreen = AppScreen.Home
+                                        currentScreen = AppScreen.OrderList
                                     }
                                 )
                             }
