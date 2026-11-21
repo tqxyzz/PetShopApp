@@ -32,13 +32,16 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import coil.compose.AsyncImage
 import com.example.petshop.R
+import com.example.petshop.data.model.Product
 import com.example.petshop.ui.theme.AdminMaroon
 import com.example.petshop.ui.theme.BorderDivider
 import com.example.petshop.ui.theme.CardSurface
@@ -56,12 +59,24 @@ import com.example.petshop.ui.theme.SuccessText
 
 @Composable
 fun ProductDetailScreen(
+    product: Product? = null,
     onBack: () -> Unit = {},
     onNavigateToCart: () -> Unit = {},
+    onAddToCart: (Product) -> Unit = {},
     onBuyNow: () -> Unit = {}
 ) {
     var selectedWeightIndex by remember { mutableStateOf(1) } // 1: Túi 2kg
     var isFavorite by remember { mutableStateOf(false) }
+
+    val titleText = product?.title?.ifEmpty { null } ?: "Thức ăn hạt Royal Canin Kitten cho mèo con từ 4 đến 12 tháng tuổi – Túi 2kg Dinh dưỡng toàn diện"
+    val brandText = product?.brand?.ifEmpty { null } ?: "Royal Canin (Pháp)"
+    val currentPriceText = product?.currentPrice?.ifEmpty { null } ?: "385.000đ"
+    val oldPriceText = product?.oldPrice?.ifEmpty { null } ?: "490.000đ"
+    val discountText = product?.discountPercent?.ifEmpty { null } ?: "-21%"
+    val ratingVal = if (product != null && product.rating > 0.0) "${product.rating}" else "4.9"
+    val soldCountText = product?.soldCount?.ifEmpty { null } ?: "5.4k"
+    val badgeText = product?.badge ?: "Bán chạy #1"
+    val imageUrl = product?.imageUrl ?: ""
 
     Scaffold(
         bottomBar = {
@@ -103,7 +118,12 @@ fun ProductDetailScreen(
                     Column(
                         horizontalAlignment = Alignment.CenterHorizontally,
                         modifier = Modifier
-                            .clickable { onNavigateToCart() }
+                            .clickable {
+                                if (product != null) {
+                                    onAddToCart(product)
+                                }
+                                onNavigateToCart()
+                            }
                             .padding(end = 16.dp)
                     ) {
                         Icon(
@@ -140,7 +160,7 @@ fun ProductDetailScreen(
                             )
                             Spacer(modifier = Modifier.width(6.dp))
                             Text(
-                                text = "Mua ngay • 385.000đ",
+                                text = "Mua ngay • $currentPriceText",
                                 fontSize = 14.sp,
                                 fontWeight = FontWeight.Bold,
                                 color = Color.White
@@ -184,7 +204,7 @@ fun ProductDetailScreen(
                 }
 
                 Text(
-                    text = "Sản Phẩm Avocado Pet",
+                    text = brandText,
                     fontSize = 17.sp,
                     fontWeight = FontWeight.Bold,
                     color = PrimaryText,
@@ -274,16 +294,28 @@ fun ProductDetailScreen(
                     .background(Color(0xFFFFF7F2)),
                 contentAlignment = Alignment.Center
             ) {
-                // Product Graphic
-                Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                    Text(text = "🐱🥣", fontSize = 84.sp)
-                    Spacer(modifier = Modifier.height(4.dp))
-                    Text(
-                        text = "ROYAL CANIN KITTEN 2KG",
-                        fontSize = 12.sp,
-                        fontWeight = FontWeight.ExtraBold,
-                        color = SecondarySoftText
+                if (imageUrl.isNotEmpty()) {
+                    AsyncImage(
+                        model = imageUrl,
+                        contentDescription = null,
+                        contentScale = ContentScale.Crop,
+                        modifier = Modifier.fillMaxSize()
                     )
+                } else {
+                    // Product Graphic Fallback
+                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                        Text(
+                            text = if (product?.petType == "dog") "🐶🥣" else "🐱🥣",
+                            fontSize = 84.sp
+                        )
+                        Spacer(modifier = Modifier.height(4.dp))
+                        Text(
+                            text = brandText.uppercase(),
+                            fontSize = 12.sp,
+                            fontWeight = FontWeight.ExtraBold,
+                            color = SecondarySoftText
+                        )
+                    }
                 }
 
                 // Top Left Badges
@@ -428,31 +460,35 @@ fun ProductDetailScreen(
                 // Price Row
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Text(
-                        text = "385.000đ",
+                        text = currentPriceText,
                         fontSize = 26.sp,
                         fontWeight = FontWeight.ExtraBold,
                         color = PrimaryCTA
                     )
-                    Spacer(modifier = Modifier.width(10.dp))
-                    Text(
-                        text = "490.000đ",
-                        fontSize = 14.sp,
-                        color = MutedText,
-                        textDecoration = TextDecoration.LineThrough
-                    )
-                    Spacer(modifier = Modifier.width(8.dp))
-                    Box(
-                        modifier = Modifier
-                            .clip(RoundedCornerShape(8.dp))
-                            .background(Color(0xFFFEE2E2))
-                            .padding(horizontal = 6.dp, vertical = 2.dp)
-                    ) {
+                    if (oldPriceText.isNotEmpty()) {
+                        Spacer(modifier = Modifier.width(10.dp))
                         Text(
-                            text = "-21%",
-                            fontSize = 11.sp,
-                            fontWeight = FontWeight.Bold,
-                            color = DangerText
+                            text = oldPriceText,
+                            fontSize = 14.sp,
+                            color = MutedText,
+                            textDecoration = TextDecoration.LineThrough
                         )
+                    }
+                    if (discountText.isNotEmpty()) {
+                        Spacer(modifier = Modifier.width(8.dp))
+                        Box(
+                            modifier = Modifier
+                                .clip(RoundedCornerShape(8.dp))
+                                .background(Color(0xFFFEE2E2))
+                                .padding(horizontal = 6.dp, vertical = 2.dp)
+                        ) {
+                            Text(
+                                text = discountText,
+                                fontSize = 11.sp,
+                                fontWeight = FontWeight.Bold,
+                                color = DangerText
+                            )
+                        }
                     }
                 }
 
@@ -466,7 +502,7 @@ fun ProductDetailScreen(
                         .padding(horizontal = 8.dp, vertical = 4.dp)
                 ) {
                     Text(
-                        text = "Bán chạy #1",
+                        text = badgeText,
                         fontSize = 11.sp,
                         fontWeight = FontWeight.Bold,
                         color = SecondarySoftText
@@ -477,7 +513,7 @@ fun ProductDetailScreen(
 
                 // Title
                 Text(
-                    text = "Thức ăn hạt Royal Canin Kitten cho mèo con từ 4 đến 12 tháng tuổi – Túi 2kg Dinh dưỡng toàn diện",
+                    text = titleText,
                     fontSize = 16.sp,
                     fontWeight = FontWeight.Bold,
                     color = PrimaryText,
@@ -489,12 +525,12 @@ fun ProductDetailScreen(
                 // Rating & Stats
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Text(
-                        text = "4.9 ⭐⭐⭐⭐⭐ (2.1k đánh giá)",
+                        text = "$ratingVal ⭐⭐⭐⭐⭐ (2.1k đánh giá)",
                         fontSize = 12.sp,
                         fontWeight = FontWeight.SemiBold,
                         color = Color(0xFFB45309)
                     )
-                    Text(text = " • Đã bán 5.4k • ", fontSize = 12.sp, color = MutedText)
+                    Text(text = " • Đã bán $soldCountText • ", fontSize = 12.sp, color = MutedText)
                     Text(
                         text = "❤ 1.8k Sen thích",
                         fontSize = 12.sp,
@@ -548,7 +584,6 @@ fun ProductDetailScreen(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
-                    // Option 1
                     VariantCard(
                         title = "Túi 400g",
                         price = "115.000đ",
@@ -556,18 +591,16 @@ fun ProductDetailScreen(
                         modifier = Modifier.weight(1f),
                         onClick = { selectedWeightIndex = 0 }
                     )
-                    // Option 2 (Selected)
                     VariantCard(
-                        title = "✓ Túi 2kg (Tiêu chuẩn)",
-                        price = "385.000đ",
+                        title = "✓ Tiêu chuẩn",
+                        price = currentPriceText,
                         badge = "Tiết kiệm 20%",
                         isSelected = selectedWeightIndex == 1,
                         modifier = Modifier.weight(1.2f),
                         onClick = { selectedWeightIndex = 1 }
                     )
-                    // Option 3
                     VariantCard(
-                        title = "Bao 10kg",
+                        title = "Bao Lớn",
                         price = "1.650.000đ",
                         isSelected = selectedWeightIndex == 2,
                         modifier = Modifier.weight(1f),
@@ -695,7 +728,7 @@ fun ProductDetailScreen(
                         Text(text = "🎁", fontSize = 20.sp)
                         Spacer(modifier = Modifier.width(10.dp))
                         Text(
-                            text = "Quà tặng đặc biệt: Tặng kèm 2 gói pate Ciao Churu hảo hạng khi rước bao 2kg cho bé cưng!",
+                            text = "Quà tặng đặc biệt: Tặng kèm 2 gói pate Ciao Churu hảo hạng khi mua sản phẩm cho bé cưng!",
                             fontSize = 12.sp,
                             fontWeight = FontWeight.Medium,
                             color = SecondarySoftText,
@@ -779,14 +812,11 @@ fun ProductDetailScreen(
                 Spacer(modifier = Modifier.height(12.dp))
 
                 Column {
-                    SpecRow(label = "Thương hiệu", value = "Royal Canin (Pháp)")
+                    SpecRow(label = "Thương hiệu", value = brandText)
+                    SpecRow(label = "Phù hợp loài", value = if (product?.petType == "dog") "Thú cưng Boss Cún 🐶" else "Thú cưng Hoàng Thượng 🐱")
                     SpecRow(label = "Nơi sản xuất", value = "Pháp / Hàn Quốc (tùy lô)")
                     SpecRow(label = "Hạn sử dụng", value = "18 tháng (Lô mới T8/2026)")
-                    SpecRow(label = "Trọng lượng tịnh", value = "2.0 kg")
-                    SpecRow(
-                        label = "Độ tuổi phù hợp",
-                        value = "Mèo 4 – 12 tháng & Mèo mẹ mang thai"
-                    )
+                    SpecRow(label = "Tình trạng", value = "Còn hàng • Chính hãng 100%")
                 }
             }
 
@@ -835,7 +865,7 @@ fun ProductDetailScreen(
                     ) {
                         Column {
                             Text(
-                                text = "4.9 ⭐⭐⭐⭐⭐",
+                                text = "$ratingVal ⭐⭐⭐⭐⭐",
                                 fontSize = 20.sp,
                                 fontWeight = FontWeight.ExtraBold,
                                 color = PrimaryCTA
@@ -909,7 +939,7 @@ fun ProductDetailScreen(
                                 color = PrimaryText
                             )
                             Text(
-                                text = "Túi 2kg • Đã mua 3 lần",
+                                text = "Đã mua 3 lần",
                                 fontSize = 11.sp,
                                 color = MutedText
                             )
@@ -920,31 +950,11 @@ fun ProductDetailScreen(
                     Spacer(modifier = Modifier.height(6.dp))
 
                     Text(
-                        text = "Hạt thơm phức, bé Mochi nhà mình kén ăn mà đổ ra bát là vét sạch trơn. Sau 2 tuần lông mượt hơn hẳn, trộm vía đi vệ sinh thành khuôn ít mùi. Shop Avocado gói hàng siêu cẩn thận tặng kèm 2 thanh ciao ưng xỉu!",
+                        text = "Sản phẩm thơm phức, bé nhà mình kén ăn mà đổ ra bát là vét sạch trơn. Sau 2 tuần lông mượt hơn hẳn, trộm vía đi vệ sinh thành khuôn ít mùi. Shop Avocado gói hàng siêu cẩn thận tặng kèm quà ưng xỉu!",
                         fontSize = 12.sp,
                         color = SecondaryText,
                         lineHeight = 17.sp
                     )
-
-                    Spacer(modifier = Modifier.height(8.dp))
-
-                    // Review photo thumbnails
-                    Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                        Box(
-                            modifier = Modifier
-                                .size(64.dp)
-                                .clip(RoundedCornerShape(12.dp))
-                                .background(Color(0xFFFFF7F2)),
-                            contentAlignment = Alignment.Center
-                        ) { Text("🐱🥣", fontSize = 28.sp) }
-                        Box(
-                            modifier = Modifier
-                                .size(64.dp)
-                                .clip(RoundedCornerShape(12.dp))
-                                .background(Color(0xFFFFF7F2)),
-                            contentAlignment = Alignment.Center
-                        ) { Text("📦🎁", fontSize = 28.sp) }
-                    }
                 }
             }
 

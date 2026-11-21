@@ -24,21 +24,20 @@ import androidx.compose.material3.Switch
 import androidx.compose.material3.SwitchDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.viewmodel.compose.viewModel
+import coil.compose.AsyncImage
 import com.example.petshop.R
 import com.example.petshop.ui.theme.AdminMaroon
 import com.example.petshop.ui.theme.BorderDivider
@@ -60,96 +59,104 @@ fun CartScreen(
     onBack: () -> Unit = {},
     onNavigateToVoucherSelect: () -> Unit = {},
     onNavigateToCheckout: () -> Unit = {},
-    onNavigateToProfile: () -> Unit = {}
+    onNavigateToProfile: () -> Unit = {},
+    viewModel: CartViewModel = viewModel()
 ) {
-    var isUsePoints by remember { mutableStateOf(true) }
-    var item1Qty by remember { mutableStateOf(1) }
-    var item2Qty by remember { mutableStateOf(2) }
-    var item3Qty by remember { mutableStateOf(1) }
+    val cartItems = viewModel.cartItems
+    val subtotal = viewModel.calculateSubtotal()
+    val discount = viewModel.calculateDiscount()
+    val shippingFee = viewModel.calculateShippingFee()
+    val totalPayment = viewModel.calculateTotalPayment()
+
+    val subtotalFormatted = CartViewModel.formatPrice(subtotal)
+    val discountFormatted = "-${CartViewModel.formatPrice(discount)}"
+    val totalPaymentFormatted = CartViewModel.formatPrice(totalPayment)
 
     Scaffold(
         bottomBar = {
-            // Bottom Checkout Bar
-            Box(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .shadow(12.dp)
-                    .background(CardSurface)
-                    .padding(horizontal = 16.dp, vertical = 10.dp)
-            ) {
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically
+            if (cartItems.isNotEmpty()) {
+                // Bottom Checkout Bar
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .shadow(12.dp)
+                        .background(CardSurface)
+                        .padding(horizontal = 16.dp, vertical = 10.dp)
                 ) {
-                    Row(verticalAlignment = Alignment.CenterVertically) {
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            Box(
+                                modifier = Modifier
+                                    .size(22.dp)
+                                    .clip(CircleShape)
+                                    .background(AdminMaroon),
+                                contentAlignment = Alignment.Center
+                            ) {
+                                Icon(
+                                    painter = painterResource(id = R.drawable.ic_check),
+                                    contentDescription = null,
+                                    tint = Color.White,
+                                    modifier = Modifier.size(14.dp)
+                                )
+                            }
+                            Spacer(modifier = Modifier.width(8.dp))
+                            Column {
+                                Row(verticalAlignment = Alignment.CenterVertically) {
+                                    Text(
+                                        text = "Tất cả ",
+                                        fontSize = 12.sp,
+                                        color = SecondaryText
+                                    )
+                                    Text(
+                                        text = "(${cartItems.size})",
+                                        fontSize = 12.sp,
+                                        fontWeight = FontWeight.Bold,
+                                        color = SecondaryText
+                                    )
+                                }
+                                Row(verticalAlignment = Alignment.Bottom) {
+                                    Text(
+                                        text = "Tổng: ",
+                                        fontSize = 12.sp,
+                                        color = SecondaryText
+                                    )
+                                    Text(
+                                        text = totalPaymentFormatted,
+                                        fontSize = 16.sp,
+                                        fontWeight = FontWeight.ExtraBold,
+                                        color = AdminMaroon
+                                    )
+                                }
+                                Text(
+                                    text = "Tiết kiệm ${CartViewModel.formatPrice(discount)}",
+                                    fontSize = 10.sp,
+                                    color = SuccessText,
+                                    fontWeight = FontWeight.Bold
+                                )
+                            }
+                        }
+
+                        // Checkout Button
                         Box(
                             modifier = Modifier
-                                .size(22.dp)
-                                .clip(CircleShape)
-                                .background(AdminMaroon),
+                                .height(48.dp)
+                                .clip(RoundedCornerShape(24.dp))
+                                .background(AdminMaroon)
+                                .clickable { onNavigateToCheckout() }
+                                .padding(horizontal = 24.dp),
                             contentAlignment = Alignment.Center
                         ) {
-                            Icon(
-                                painter = painterResource(id = R.drawable.ic_check),
-                                contentDescription = null,
-                                tint = Color.White,
-                                modifier = Modifier.size(14.dp)
-                            )
-                        }
-                        Spacer(modifier = Modifier.width(8.dp))
-                        Column {
-                            Row(verticalAlignment = Alignment.CenterVertically) {
-                                Text(
-                                    text = "Tất cả ",
-                                    fontSize = 12.sp,
-                                    color = SecondaryText
-                                )
-                                Text(
-                                    text = "(3)",
-                                    fontSize = 12.sp,
-                                    fontWeight = FontWeight.Bold,
-                                    color = SecondaryText
-                                )
-                            }
-                            Row(verticalAlignment = Alignment.Bottom) {
-                                Text(
-                                    text = "Tổng: ",
-                                    fontSize = 12.sp,
-                                    color = SecondaryText
-                                )
-                                Text(
-                                    text = "608.000đ",
-                                    fontSize = 16.sp,
-                                    fontWeight = FontWeight.ExtraBold,
-                                    color = AdminMaroon
-                                )
-                            }
                             Text(
-                                text = "Tiết kiệm 164.000đ",
-                                fontSize = 10.sp,
-                                color = SuccessText,
-                                fontWeight = FontWeight.Bold
+                                text = "Mua hàng (${cartItems.size}) ➔",
+                                fontSize = 14.sp,
+                                fontWeight = FontWeight.Bold,
+                                color = Color.White
                             )
                         }
-                    }
-
-                    // Checkout Button
-                    Box(
-                        modifier = Modifier
-                            .height(48.dp)
-                            .clip(RoundedCornerShape(24.dp))
-                            .background(AdminMaroon)
-                            .clickable { onNavigateToCheckout() }
-                            .padding(horizontal = 24.dp),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        Text(
-                            text = "Mua hàng (3) ➔",
-                            fontSize = 14.sp,
-                            fontWeight = FontWeight.Bold,
-                            color = Color.White
-                        )
                     }
                 }
             }
@@ -188,7 +195,7 @@ fun CartScreen(
                 }
 
                 Text(
-                    text = "Gio Hang",
+                    text = "Giỏ Hàng",
                     fontSize = 18.sp,
                     fontWeight = FontWeight.Bold,
                     color = PrimaryText
@@ -225,157 +232,144 @@ fun CartScreen(
                 }
             }
 
-            // Top Freeship Banner
-            Box(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = 16.dp)
-                    .clip(RoundedCornerShape(20.dp))
-                    .background(SecondarySurface)
-                    .border(1.dp, BorderDivider, RoundedCornerShape(20.dp))
-                    .padding(14.dp)
-            ) {
-                Column {
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.SpaceBetween,
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        Row(verticalAlignment = Alignment.CenterVertically) {
-                            Text(text = "🚚", fontSize = 18.sp)
-                            Spacer(modifier = Modifier.width(8.dp))
-                            Text(
-                                text = "Mua thêm 115.000đ để được Freeship toàn quốc",
-                                fontSize = 12.sp,
-                                fontWeight = FontWeight.Bold,
-                                color = PrimaryText
-                            )
-                        }
-
-                        Box(
-                            modifier = Modifier
-                                .clip(RoundedCornerShape(10.dp))
-                                .background(Color(0xFFFEE2E2))
-                                .padding(horizontal = 6.dp, vertical = 2.dp)
-                        ) {
-                            Text(
-                                text = "Tối đa 30k",
-                                fontSize = 10.sp,
-                                fontWeight = FontWeight.Bold,
-                                color = DangerText
-                            )
-                        }
-                    }
-
-                    Spacer(modifier = Modifier.height(8.dp))
-
-                    // Progress Bar
-                    Box(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .height(6.dp)
-                            .clip(RoundedCornerShape(3.dp))
-                            .background(BorderDivider)
-                    ) {
-                        Box(
-                            modifier = Modifier
-                                .fillMaxWidth(0.75f)
-                                .height(6.dp)
-                                .clip(RoundedCornerShape(3.dp))
-                                .background(AdminMaroon)
-                        )
-                    }
-
-                    Spacer(modifier = Modifier.height(6.dp))
-
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.SpaceBetween
-                    ) {
+            if (cartItems.isEmpty()) {
+                // EMPTY CART VIEW
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(32.dp),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                        Text(text = "🛒", fontSize = 64.sp)
+                        Spacer(modifier = Modifier.height(12.dp))
                         Text(
-                            text = "Đã đạt 75% giá trị",
-                            fontSize = 11.sp,
+                            text = "Giỏ hàng của bạn đang trống!",
+                            fontSize = 16.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = PrimaryText
+                        )
+                        Spacer(modifier = Modifier.height(6.dp))
+                        Text(
+                            text = "Hãy chọn thêm sản phẩm từ Avocado PetShop nhé.",
+                            fontSize = 12.sp,
                             color = MutedText
                         )
-                        Text(
-                            text = "Còn 1 bước nữa 🐾",
-                            fontSize = 11.sp,
-                            fontWeight = FontWeight.Bold,
-                            color = SecondarySoftText
-                        )
+                        Spacer(modifier = Modifier.height(16.dp))
+                        Box(
+                            modifier = Modifier
+                                .clip(RoundedCornerShape(20.dp))
+                                .background(PrimaryCTA)
+                                .clickable { onBack() }
+                                .padding(horizontal = 24.dp, vertical = 12.dp)
+                        ) {
+                            Text(
+                                text = "Tiếp tục mua sắm ➔",
+                                fontSize = 14.sp,
+                                fontWeight = FontWeight.Bold,
+                                color = Color.White
+                            )
+                        }
                     }
                 }
-            }
+            } else {
+                // Top Freeship Banner
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 16.dp)
+                        .clip(RoundedCornerShape(20.dp))
+                        .background(SecondarySurface)
+                        .border(1.dp, BorderDivider, RoundedCornerShape(20.dp))
+                        .padding(14.dp)
+                ) {
+                    Column {
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.SpaceBetween,
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Row(verticalAlignment = Alignment.CenterVertically) {
+                                Text(text = "🚚", fontSize = 18.sp)
+                                Spacer(modifier = Modifier.width(8.dp))
+                                Text(
+                                    text = if (subtotal >= 300000) "Đơn hàng của bạn đã đủ điều kiện Freeship!" else "Mua thêm ${CartViewModel.formatPrice(300000 - subtotal)} để được Freeship",
+                                    fontSize = 12.sp,
+                                    fontWeight = FontWeight.Bold,
+                                    color = PrimaryText
+                                )
+                            }
 
-            Spacer(modifier = Modifier.height(14.dp))
+                            Box(
+                                modifier = Modifier
+                                    .clip(RoundedCornerShape(10.dp))
+                                    .background(Color(0xFFFEE2E2))
+                                    .padding(horizontal = 6.dp, vertical = 2.dp)
+                            ) {
+                                Text(
+                                    text = "Tối đa 30k",
+                                    fontSize = 10.sp,
+                                    fontWeight = FontWeight.Bold,
+                                    color = DangerText
+                                )
+                            }
+                        }
 
-            // Select All Header
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = 16.dp),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    Box(
-                        modifier = Modifier
-                            .size(20.dp)
-                            .clip(CircleShape)
-                            .background(AdminMaroon),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        Icon(
-                            painter = painterResource(id = R.drawable.ic_check),
-                            contentDescription = null,
-                            tint = Color.White,
-                            modifier = Modifier.size(12.dp)
-                        )
+                        Spacer(modifier = Modifier.height(8.dp))
+
+                        // Progress Bar
+                        val progress = if (subtotal >= 300000) 1.0f else (subtotal.toFloat() / 300000f)
+                        Box(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .height(6.dp)
+                                .clip(RoundedCornerShape(3.dp))
+                                .background(BorderDivider)
+                        ) {
+                            Box(
+                                modifier = Modifier
+                                    .fillMaxWidth(progress)
+                                    .height(6.dp)
+                                    .clip(RoundedCornerShape(3.dp))
+                                    .background(AdminMaroon)
+                            )
+                        }
+
+                        Spacer(modifier = Modifier.height(6.dp))
+
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.SpaceBetween
+                        ) {
+                            Text(
+                                text = "Đã đạt ${(progress * 100).toInt()}% giá trị",
+                                fontSize = 11.sp,
+                                color = MutedText
+                            )
+                            Text(
+                                text = if (subtotal >= 300000) "Đã nhận Freeship 🐾" else "Còn 1 bước nữa 🐾",
+                                fontSize = 11.sp,
+                                fontWeight = FontWeight.Bold,
+                                color = SecondarySoftText
+                            )
+                        }
                     }
-                    Spacer(modifier = Modifier.width(8.dp))
-                    Text(
-                        text = "Chọn tất cả (3 món)",
-                        fontSize = 14.sp,
-                        fontWeight = FontWeight.Bold,
-                        color = PrimaryText
-                    )
                 }
 
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    Icon(
-                        painter = painterResource(id = R.drawable.ic_trash),
-                        contentDescription = "Xóa đã chọn",
-                        tint = MutedText,
-                        modifier = Modifier.size(16.dp)
-                    )
-                    Spacer(modifier = Modifier.width(4.dp))
-                    Text(
-                        text = "Xóa đã chọn",
-                        fontSize = 12.sp,
-                        color = MutedText
-                    )
-                }
-            }
+                Spacer(modifier = Modifier.height(14.dp))
 
-            Spacer(modifier = Modifier.height(12.dp))
-
-            // SELLER ITEMS CONTAINER CARD
-            Box(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = 16.dp)
-                    .shadow(4.dp, RoundedCornerShape(20.dp), ambientColor = BorderDivider)
-                    .clip(RoundedCornerShape(20.dp))
-                    .background(CardSurface)
-                    .border(1.dp, BorderDivider, RoundedCornerShape(20.dp))
-                    .padding(14.dp)
-            ) {
-                Column {
-                    // Seller Title Row
+                // Select All Header & Clear Cart
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 16.dp),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
                     Row(verticalAlignment = Alignment.CenterVertically) {
                         Box(
                             modifier = Modifier
-                                .size(18.dp)
+                                .size(20.dp)
                                 .clip(CircleShape)
                                 .background(AdminMaroon),
                             contentAlignment = Alignment.Center
@@ -384,142 +378,89 @@ fun CartScreen(
                                 painter = painterResource(id = R.drawable.ic_check),
                                 contentDescription = null,
                                 tint = Color.White,
-                                modifier = Modifier.size(10.dp)
+                                modifier = Modifier.size(12.dp)
                             )
                         }
                         Spacer(modifier = Modifier.width(8.dp))
-                        Box(
-                            modifier = Modifier
-                                .clip(RoundedCornerShape(4.dp))
-                                .background(Color(0xFFFEE2E2))
-                                .padding(horizontal = 4.dp, vertical = 1.dp)
-                        ) {
-                            Text(
-                                text = "MALL",
-                                fontSize = 9.sp,
-                                fontWeight = FontWeight.Bold,
-                                color = DangerText
-                            )
-                        }
-                        Spacer(modifier = Modifier.width(6.dp))
                         Text(
-                            text = "Avocado Official Mall ✔",
-                            fontSize = 13.sp,
+                            text = "Tất cả sản phẩm (${cartItems.size} món)",
+                            fontSize = 14.sp,
                             fontWeight = FontWeight.Bold,
                             color = PrimaryText
                         )
-                        Icon(
-                            painter = painterResource(id = R.drawable.ic_chevron_right),
-                            contentDescription = null,
-                            tint = MutedText,
-                            modifier = Modifier.size(16.dp)
-                        )
                     }
 
-                    Spacer(modifier = Modifier.height(14.dp))
-
-                    // Item 1: Royal Canin Kitten
-                    CartItemRow(
-                        emoji = "🐱",
-                        title = "Hạt Royal Canin Kitten cho mèo",
-                        variant = "Túi 2kg + Tặng Pate Ciao ▾",
-                        price = "385.000đ",
-                        oldPrice = "490.000đ",
-                        stockText = "Còn 12 gói",
-                        qty = item1Qty,
-                        onQtyChange = { item1Qty = it },
-                        giftText = "🎁 Quà tặng 0đ: 01 Gói Pate Ciao Churu cá ngừ (Trị giá 15.000đ)"
-                    )
-
-                    Spacer(modifier = Modifier.height(14.dp))
-
-                    // Item 2: Cature Tofu Litter
-                    CartItemRow(
-                        emoji = "🌱",
-                        title = "Cát đậu nành Tofu Cature...",
-                        variant = "Hương Trà Xanh 7L ▾",
-                        price = "115.000đ",
-                        oldPrice = "145.000đ",
-                        subtotalText = "Tổng: 230.000đ",
-                        qty = item2Qty,
-                        onQtyChange = { item2Qty = it }
-                    )
-
-                    Spacer(modifier = Modifier.height(14.dp))
-
-                    // Item 3: Ciao Churu Treat
-                    CartItemRow(
-                        emoji = "🐟",
-                        title = "Súp thưởng Ciao Churu cá ngừ...",
-                        variant = "Vị Cá ngừ 4 gói ▾",
-                        price = "38.000đ",
-                        oldPrice = "50.000đ",
-                        tagText = "Mua kèm giá tốt",
-                        qty = item3Qty,
-                        onQtyChange = { item3Qty = it }
-                    )
-                }
-            }
-
-            Spacer(modifier = Modifier.height(14.dp))
-
-            // VOUCHER & PET POINTS SECTION CARD
-            Box(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = 16.dp)
-                    .clip(RoundedCornerShape(20.dp))
-                    .background(CardSurface)
-                    .border(1.dp, BorderDivider, RoundedCornerShape(20.dp))
-                    .padding(14.dp)
-            ) {
-                Column {
-                    // Voucher Row
                     Row(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .clickable { onNavigateToVoucherSelect() },
-                        horizontalArrangement = Arrangement.SpaceBetween,
-                        verticalAlignment = Alignment.CenterVertically
+                        verticalAlignment = Alignment.CenterVertically,
+                        modifier = Modifier.clickable { viewModel.clearCart() }
                     ) {
+                        Icon(
+                            painter = painterResource(id = R.drawable.ic_trash),
+                            contentDescription = "Xóa tất cả",
+                            tint = DangerText,
+                            modifier = Modifier.size(16.dp)
+                        )
+                        Spacer(modifier = Modifier.width(4.dp))
+                        Text(
+                            text = "Xóa tất cả",
+                            fontSize = 12.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = DangerText
+                        )
+                    }
+                }
+
+                Spacer(modifier = Modifier.height(12.dp))
+
+                // SELLER ITEMS CONTAINER CARD
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 16.dp)
+                        .shadow(4.dp, RoundedCornerShape(20.dp), ambientColor = BorderDivider)
+                        .clip(RoundedCornerShape(20.dp))
+                        .background(CardSurface)
+                        .border(1.dp, BorderDivider, RoundedCornerShape(20.dp))
+                        .padding(14.dp)
+                ) {
+                    Column {
+                        // Seller Title Row
                         Row(verticalAlignment = Alignment.CenterVertically) {
-                            Icon(
-                                painter = painterResource(id = R.drawable.ic_ticket),
-                                contentDescription = null,
-                                tint = PrimaryCTA,
-                                modifier = Modifier.size(20.dp)
-                            )
-                            Spacer(modifier = Modifier.width(10.dp))
-                            Column {
-                                Text(
-                                    text = "Avocado Voucher",
-                                    fontSize = 13.sp,
-                                    fontWeight = FontWeight.Bold,
-                                    color = PrimaryText
+                            Box(
+                                modifier = Modifier
+                                    .size(18.dp)
+                                    .clip(CircleShape)
+                                    .background(AdminMaroon),
+                                contentAlignment = Alignment.Center
+                            ) {
+                                Icon(
+                                    painter = painterResource(id = R.drawable.ic_check),
+                                    contentDescription = null,
+                                    tint = Color.White,
+                                    modifier = Modifier.size(10.dp)
                                 )
+                            }
+                            Spacer(modifier = Modifier.width(8.dp))
+                            Box(
+                                modifier = Modifier
+                                    .clip(RoundedCornerShape(4.dp))
+                                    .background(Color(0xFFFEE2E2))
+                                    .padding(horizontal = 4.dp, vertical = 1.dp)
+                            ) {
                                 Text(
-                                    text = "Đã chọn 2 mã (-50.000đ)",
-                                    fontSize = 11.sp,
+                                    text = "MALL",
+                                    fontSize = 9.sp,
                                     fontWeight = FontWeight.Bold,
                                     color = DangerText
                                 )
                             }
-                        }
-
-                        Row(verticalAlignment = Alignment.CenterVertically) {
-                            Box(
-                                modifier = Modifier
-                                    .clip(RoundedCornerShape(10.dp))
-                                    .background(SecondarySoft)
-                                    .padding(horizontal = 8.dp, vertical = 4.dp)
-                            ) {
-                                Text(
-                                    text = "Tiết kiệm 50k",
-                                    fontSize = 11.sp,
-                                    fontWeight = FontWeight.Bold,
-                                    color = SecondarySoftText
-                                )
-                            }
+                            Spacer(modifier = Modifier.width(6.dp))
+                            Text(
+                                text = "Avocado Official Mall ✔",
+                                fontSize = 13.sp,
+                                fontWeight = FontWeight.Bold,
+                                color = PrimaryText
+                            )
                             Icon(
                                 painter = painterResource(id = R.drawable.ic_chevron_right),
                                 contentDescription = null,
@@ -527,171 +468,256 @@ fun CartScreen(
                                 modifier = Modifier.size(16.dp)
                             )
                         }
-                    }
 
-                    Spacer(modifier = Modifier.height(12.dp))
+                        Spacer(modifier = Modifier.height(14.dp))
 
-                    // Pet Points Row
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.SpaceBetween,
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        Row(verticalAlignment = Alignment.CenterVertically) {
-                            Icon(
-                                painter = painterResource(id = R.drawable.ic_paw),
-                                contentDescription = null,
-                                tint = SuccessText,
-                                modifier = Modifier.size(20.dp)
+                        // Dynamic Cart Items List
+                        cartItems.forEachIndexed { index, item ->
+                            DynamicCartItemRow(
+                                item = item,
+                                onQtyIncrease = { viewModel.updateQuantity(item, item.quantity + 1) },
+                                onQtyDecrease = { viewModel.updateQuantity(item, item.quantity - 1) },
+                                onDelete = { viewModel.removeFromCart(item) }
                             )
-                            Spacer(modifier = Modifier.width(10.dp))
-                            Column {
-                                Row(verticalAlignment = Alignment.CenterVertically) {
+
+                            if (index < cartItems.size - 1) {
+                                Spacer(modifier = Modifier.height(14.dp))
+                                Box(
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .height(1.dp)
+                                        .background(BorderDivider.copy(alpha = 0.5f))
+                                )
+                                Spacer(modifier = Modifier.height(14.dp))
+                            }
+                        }
+                    }
+                }
+
+                Spacer(modifier = Modifier.height(14.dp))
+
+                // VOUCHER & PET POINTS SECTION CARD
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 16.dp)
+                        .clip(RoundedCornerShape(20.dp))
+                        .background(CardSurface)
+                        .border(1.dp, BorderDivider, RoundedCornerShape(20.dp))
+                        .padding(14.dp)
+                ) {
+                    Column {
+                        // Voucher Row
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .clickable { onNavigateToVoucherSelect() },
+                            horizontalArrangement = Arrangement.SpaceBetween,
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Row(verticalAlignment = Alignment.CenterVertically) {
+                                Icon(
+                                    painter = painterResource(id = R.drawable.ic_ticket),
+                                    contentDescription = null,
+                                    tint = PrimaryCTA,
+                                    modifier = Modifier.size(20.dp)
+                                )
+                                Spacer(modifier = Modifier.width(10.dp))
+                                Column {
                                     Text(
-                                        text = "Dùng 1.500 Pet Points ",
+                                        text = "Avocado Voucher",
                                         fontSize = 13.sp,
                                         fontWeight = FontWeight.Bold,
                                         color = PrimaryText
                                     )
                                     Text(
-                                        text = "(-15.000đ)",
-                                        fontSize = 13.sp,
+                                        text = "Đã áp dụng giảm giá",
+                                        fontSize = 11.sp,
                                         fontWeight = FontWeight.Bold,
                                         color = DangerText
                                     )
                                 }
-                                Text(
-                                    text = "Khả dụng: 3.250 điểm Avocado Club",
-                                    fontSize = 11.sp,
-                                    color = MutedText
+                            }
+
+                            Row(verticalAlignment = Alignment.CenterVertically) {
+                                Box(
+                                    modifier = Modifier
+                                        .clip(RoundedCornerShape(10.dp))
+                                        .background(SecondarySoft)
+                                        .padding(horizontal = 8.dp, vertical = 4.dp)
+                                ) {
+                                    Text(
+                                        text = "Giảm ${CartViewModel.formatPrice(discount)}",
+                                        fontSize = 11.sp,
+                                        fontWeight = FontWeight.Bold,
+                                        color = SecondarySoftText
+                                    )
+                                }
+                                Icon(
+                                    painter = painterResource(id = R.drawable.ic_chevron_right),
+                                    contentDescription = null,
+                                    tint = MutedText,
+                                    modifier = Modifier.size(16.dp)
                                 )
                             }
                         }
 
-                        Switch(
-                            checked = isUsePoints,
-                            onCheckedChange = { isUsePoints = it },
-                            colors = SwitchDefaults.colors(
-                                checkedThumbColor = Color.White,
-                                checkedTrackColor = AdminMaroon
-                            )
-                        )
-                    }
-                }
-            }
+                        Spacer(modifier = Modifier.height(12.dp))
 
-            Spacer(modifier = Modifier.height(14.dp))
+                        // Pet Points Row
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.SpaceBetween,
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Row(verticalAlignment = Alignment.CenterVertically) {
+                                Icon(
+                                    painter = painterResource(id = R.drawable.ic_paw),
+                                    contentDescription = null,
+                                    tint = SuccessText,
+                                    modifier = Modifier.size(20.dp)
+                                )
+                                Spacer(modifier = Modifier.width(10.dp))
+                                Column {
+                                    Row(verticalAlignment = Alignment.CenterVertically) {
+                                        Text(
+                                            text = "Dùng Pet Points ",
+                                            fontSize = 13.sp,
+                                            fontWeight = FontWeight.Bold,
+                                            color = PrimaryText
+                                        )
+                                        Text(
+                                            text = "(-15.000đ)",
+                                            fontSize = 13.sp,
+                                            fontWeight = FontWeight.Bold,
+                                            color = DangerText
+                                        )
+                                    }
+                                    Text(
+                                        text = "Khả dụng: 3.250 điểm Avocado Club",
+                                        fontSize = 11.sp,
+                                        color = MutedText
+                                    )
+                                }
+                            }
 
-            // PAYMENT BREAKDOWN CARD
-            Box(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = 16.dp)
-                    .clip(RoundedCornerShape(20.dp))
-                    .background(CardSurface)
-                    .border(1.dp, BorderDivider, RoundedCornerShape(20.dp))
-                    .padding(16.dp)
-            ) {
-                Column {
-                    Text(
-                        text = "Chi tiết thanh toán",
-                        fontSize = 15.sp,
-                        fontWeight = FontWeight.Bold,
-                        color = PrimaryText
-                    )
-
-                    Spacer(modifier = Modifier.height(12.dp))
-
-                    BreakdownRow(label = "Tạm tính hàng hóa", value = "653.000đ")
-                    BreakdownRow(label = "Giảm giá voucher shop", value = "-30.000đ", isDiscount = true)
-                    BreakdownRow(label = "Điểm Pet Points khấu trừ", value = "-15.000đ", isDiscount = true)
-                    BreakdownRow(
-                        label = "Phí vận chuyển ước tính",
-                        value = "0đ (Freeship)",
-                        oldValue = "25.000đ"
-                    )
-
-                    Spacer(modifier = Modifier.height(10.dp))
-                    Box(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .height(1.dp)
-                            .background(BorderDivider)
-                    )
-                    Spacer(modifier = Modifier.height(10.dp))
-
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.SpaceBetween,
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        Column {
-                            Text(
-                                text = "Thành tiền tạm tính",
-                                fontSize = 14.sp,
-                                fontWeight = FontWeight.Bold,
-                                color = PrimaryText
-                            )
-                            Text(
-                                text = "Đã tiết kiệm được 164.000đ",
-                                fontSize = 11.sp,
-                                fontWeight = FontWeight.Bold,
-                                color = SuccessText
+                            Switch(
+                                checked = viewModel.isUsePoints,
+                                onCheckedChange = { viewModel.isUsePoints = it },
+                                colors = SwitchDefaults.colors(
+                                    checkedThumbColor = Color.White,
+                                    checkedTrackColor = AdminMaroon
+                                )
                             )
                         }
-
-                        Text(
-                            text = "608.000đ",
-                            fontSize = 20.sp,
-                            fontWeight = FontWeight.ExtraBold,
-                            color = AdminMaroon
-                        )
                     }
                 }
+
+                Spacer(modifier = Modifier.height(14.dp))
+
+                // PAYMENT BREAKDOWN CARD
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 16.dp)
+                        .clip(RoundedCornerShape(20.dp))
+                        .background(CardSurface)
+                        .border(1.dp, BorderDivider, RoundedCornerShape(20.dp))
+                        .padding(16.dp)
+                ) {
+                    Column {
+                        Text(
+                            text = "Chi tiết thanh toán",
+                            fontSize = 15.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = PrimaryText
+                        )
+
+                        Spacer(modifier = Modifier.height(12.dp))
+
+                        BreakdownRow(label = "Tạm tính hàng hóa", value = subtotalFormatted)
+                        BreakdownRow(label = "Giảm giá voucher & tích điểm", value = discountFormatted, isDiscount = true)
+                        BreakdownRow(
+                            label = "Phí vận chuyển ước tính",
+                            value = if (shippingFee == 0) "0đ (Freeship)" else CartViewModel.formatPrice(shippingFee),
+                            oldValue = if (shippingFee == 0) "25.000đ" else null
+                        )
+
+                        Spacer(modifier = Modifier.height(10.dp))
+                        Box(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .height(1.dp)
+                                .background(BorderDivider)
+                        )
+                        Spacer(modifier = Modifier.height(10.dp))
+
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.SpaceBetween,
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Column {
+                                Text(
+                                    text = "Thành tiền tạm tính",
+                                    fontSize = 14.sp,
+                                    fontWeight = FontWeight.Bold,
+                                    color = PrimaryText
+                                )
+                                Text(
+                                    text = "Đã tiết kiệm được ${CartViewModel.formatPrice(discount)}",
+                                    fontSize = 11.sp,
+                                    fontWeight = FontWeight.Bold,
+                                    color = SuccessText
+                                )
+                            }
+
+                            Text(
+                                text = totalPaymentFormatted,
+                                fontSize = 20.sp,
+                                fontWeight = FontWeight.ExtraBold,
+                                color = AdminMaroon
+                            )
+                        }
+                    }
+                }
+
+                Spacer(modifier = Modifier.height(16.dp))
+
+                // Footer Commitment text
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 16.dp),
+                    horizontalArrangement = Arrangement.Center,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Icon(
+                        painter = painterResource(id = R.drawable.ic_shield_check),
+                        contentDescription = null,
+                        tint = SuccessText,
+                        modifier = Modifier.size(16.dp)
+                    )
+                    Spacer(modifier = Modifier.width(6.dp))
+                    Text(
+                        text = "100% chính hãng • Đổi trả 7 ngày miễn phí cho thú cưng",
+                        fontSize = 11.sp,
+                        color = MutedText
+                    )
+                }
+
+                Spacer(modifier = Modifier.height(24.dp))
             }
-
-            Spacer(modifier = Modifier.height(16.dp))
-
-            // Footer Commitment text
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = 16.dp),
-                horizontalArrangement = Arrangement.Center,
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Icon(
-                    painter = painterResource(id = R.drawable.ic_shield_check),
-                    contentDescription = null,
-                    tint = SuccessText,
-                    modifier = Modifier.size(16.dp)
-                )
-                Spacer(modifier = Modifier.width(6.dp))
-                Text(
-                    text = "100% chính hãng • Đổi trả 7 ngày miễn phí cho thú cưng",
-                    fontSize = 11.sp,
-                    color = MutedText
-                )
-            }
-
-            Spacer(modifier = Modifier.height(24.dp))
         }
     }
 }
 
 @Composable
-fun CartItemRow(
-    emoji: String,
-    title: String,
-    variant: String,
-    price: String,
-    oldPrice: String,
-    stockText: String? = null,
-    subtotalText: String? = null,
-    tagText: String? = null,
-    giftText: String? = null,
-    qty: Int = 1,
-    onQtyChange: (Int) -> Unit = {}
+fun DynamicCartItemRow(
+    item: CartItem,
+    onQtyIncrease: () -> Unit,
+    onQtyDecrease: () -> Unit,
+    onDelete: () -> Unit
 ) {
     Column {
         Row(verticalAlignment = Alignment.Top) {
@@ -720,20 +746,49 @@ fun CartItemRow(
                     .background(Color(0xFFFFF7F2)),
                 contentAlignment = Alignment.Center
             ) {
-                Text(text = emoji, fontSize = 36.sp)
+                if (item.product.imageUrl.isNotEmpty()) {
+                    AsyncImage(
+                        model = item.product.imageUrl,
+                        contentDescription = null,
+                        contentScale = ContentScale.Crop,
+                        modifier = Modifier.fillMaxSize()
+                    )
+                } else {
+                    Text(
+                        text = if (item.product.petType == "dog") "🐶" else "🐱",
+                        fontSize = 36.sp
+                    )
+                }
             }
 
             Spacer(modifier = Modifier.width(10.dp))
 
             Column(modifier = Modifier.weight(1f)) {
-                Text(
-                    text = title,
-                    fontSize = 13.sp,
-                    fontWeight = FontWeight.Bold,
-                    color = PrimaryText,
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis
-                )
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Text(
+                        text = item.product.title,
+                        fontSize = 13.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = PrimaryText,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis,
+                        modifier = Modifier.weight(1f)
+                    )
+
+                    // Delete trash icon
+                    Icon(
+                        painter = painterResource(id = R.drawable.ic_trash),
+                        contentDescription = "Xóa khỏi giỏ",
+                        tint = DangerText,
+                        modifier = Modifier
+                            .size(16.dp)
+                            .clickable { onDelete() }
+                    )
+                }
 
                 Spacer(modifier = Modifier.height(2.dp))
 
@@ -745,7 +800,7 @@ fun CartItemRow(
                         .padding(horizontal = 6.dp, vertical = 2.dp)
                 ) {
                     Text(
-                        text = variant,
+                        text = item.selectedVariant,
                         fontSize = 10.sp,
                         color = SecondarySoftText,
                         fontWeight = FontWeight.Medium
@@ -756,57 +811,24 @@ fun CartItemRow(
 
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Text(
-                        text = price,
+                        text = item.product.currentPrice,
                         fontSize = 14.sp,
                         fontWeight = FontWeight.ExtraBold,
                         color = PrimaryCTA
                     )
-                    Spacer(modifier = Modifier.width(6.dp))
-                    Text(
-                        text = oldPrice,
-                        fontSize = 11.sp,
-                        color = MutedText,
-                        textDecoration = TextDecoration.LineThrough
-                    )
-                }
-
-                if (stockText != null) {
-                    Box(
-                        modifier = Modifier
-                            .clip(RoundedCornerShape(6.dp))
-                            .background(SuccessBg)
-                            .padding(horizontal = 6.dp, vertical = 1.dp)
-                    ) {
+                    if (!item.product.oldPrice.isNullOrEmpty()) {
+                        Spacer(modifier = Modifier.width(6.dp))
                         Text(
-                            text = stockText,
-                            fontSize = 9.sp,
-                            fontWeight = FontWeight.Bold,
-                            color = SuccessText
-                        )
-                    }
-                } else if (subtotalText != null) {
-                    Text(
-                        text = subtotalText,
-                        fontSize = 10.sp,
-                        fontWeight = FontWeight.Bold,
-                        color = SecondaryText
-                    )
-                } else if (tagText != null) {
-                    Box(
-                        modifier = Modifier
-                            .clip(RoundedCornerShape(6.dp))
-                            .background(SuccessBg)
-                            .padding(horizontal = 6.dp, vertical = 1.dp)
-                    ) {
-                        Text(
-                            text = tagText,
-                            fontSize = 9.sp,
-                            fontWeight = FontWeight.Bold,
-                            color = SuccessText
+                            text = item.product.oldPrice,
+                            fontSize = 11.sp,
+                            color = MutedText,
+                            textDecoration = TextDecoration.LineThrough
                         )
                     }
                 }
             }
+
+            Spacer(modifier = Modifier.width(8.dp))
 
             // Stepper Quantity Control
             Row(
@@ -819,12 +841,12 @@ fun CartItemRow(
                 Box(
                     modifier = Modifier
                         .size(28.dp)
-                        .clickable { if (qty > 1) onQtyChange(qty - 1) },
+                        .clickable { onQtyDecrease() },
                     contentAlignment = Alignment.Center
                 ) { Text("-", fontSize = 14.sp, fontWeight = FontWeight.Bold, color = PrimaryText) }
 
                 Text(
-                    text = "$qty",
+                    text = "${item.quantity}",
                     fontSize = 12.sp,
                     fontWeight = FontWeight.Bold,
                     color = PrimaryText,
@@ -834,27 +856,9 @@ fun CartItemRow(
                 Box(
                     modifier = Modifier
                         .size(28.dp)
-                        .clickable { onQtyChange(qty + 1) },
+                        .clickable { onQtyIncrease() },
                     contentAlignment = Alignment.Center
                 ) { Text("+", fontSize = 14.sp, fontWeight = FontWeight.Bold, color = PrimaryText) }
-            }
-        }
-
-        if (giftText != null) {
-            Spacer(modifier = Modifier.height(6.dp))
-            Box(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .clip(RoundedCornerShape(10.dp))
-                    .background(SecondarySurface)
-                    .padding(8.dp)
-            ) {
-                Text(
-                    text = giftText,
-                    fontSize = 11.sp,
-                    color = SecondarySoftText,
-                    fontWeight = FontWeight.Medium
-                )
             }
         }
     }

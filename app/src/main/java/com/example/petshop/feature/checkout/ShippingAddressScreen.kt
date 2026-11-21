@@ -24,6 +24,7 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.CheckboxDefaults
 import androidx.compose.material3.Icon
+import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.RadioButton
 import androidx.compose.material3.RadioButtonDefaults
 import androidx.compose.material3.Scaffold
@@ -44,7 +45,9 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.petshop.R
+import com.example.petshop.feature.cart.CartViewModel
 import com.example.petshop.ui.theme.AdminMaroon
 import com.example.petshop.ui.theme.BorderDivider
 import com.example.petshop.ui.theme.CardSurface
@@ -54,7 +57,6 @@ import com.example.petshop.ui.theme.MutedText
 import com.example.petshop.ui.theme.PlaceholderText
 import com.example.petshop.ui.theme.PrimaryCTA
 import com.example.petshop.ui.theme.PrimaryText
-import com.example.petshop.ui.theme.SecondarySoft
 import com.example.petshop.ui.theme.SecondarySoftText
 import com.example.petshop.ui.theme.SecondarySurface
 import com.example.petshop.ui.theme.SecondaryText
@@ -66,12 +68,20 @@ import com.example.petshop.ui.theme.SuccessText
 fun ShippingAddressScreen(
     onBack: () -> Unit = {},
     onContinueToPayment: () -> Unit = {},
-    onNavigateToProfile: () -> Unit = {}
+    onNavigateToProfile: () -> Unit = {},
+    viewModel: CheckoutViewModel = viewModel()
 ) {
-    var noteInput by remember { mutableStateOf("") }
-    var selectedShippingOption by remember { mutableStateOf(0) }
+    var isEditingAddress by remember { mutableStateOf(false) }
+
+    var editName by remember(viewModel.recipientName) { mutableStateOf(viewModel.recipientName) }
+    var editPhone by remember(viewModel.recipientPhone) { mutableStateOf(viewModel.recipientPhone) }
+    var editAddress by remember(viewModel.fullAddress) { mutableStateOf(viewModel.fullAddress) }
+
     var isBioWrapChecked by remember { mutableStateOf(true) }
     var isCoCheckChecked by remember { mutableStateOf(true) }
+
+    val shippingFee = viewModel.calculateShippingFee()
+    val shippingFeeText = if (shippingFee == 0) "Miễn phí 0đ" else CartViewModel.formatPrice(shippingFee)
 
     Scaffold(
         bottomBar = {
@@ -92,7 +102,7 @@ fun ShippingAddressScreen(
                         Row(verticalAlignment = Alignment.CenterVertically) {
                             Text(text = "Phí vận chuyển: ", fontSize = 12.sp, color = SecondaryText)
                             Text(
-                                text = "10.000đ",
+                                text = shippingFeeText,
                                 fontSize = 15.sp,
                                 fontWeight = FontWeight.ExtraBold,
                                 color = AdminMaroon
@@ -112,7 +122,12 @@ fun ShippingAddressScreen(
                             .height(48.dp)
                             .clip(RoundedCornerShape(24.dp))
                             .background(PrimaryCTA)
-                            .clickable { onContinueToPayment() }
+                            .clickable {
+                                if (isEditingAddress) {
+                                    viewModel.updateAddress(editName, editPhone, editAddress)
+                                }
+                                onContinueToPayment()
+                            }
                             .padding(horizontal = 20.dp),
                         contentAlignment = Alignment.Center
                     ) {
@@ -160,7 +175,7 @@ fun ShippingAddressScreen(
                 }
 
                 Text(
-                    text = "Dia Chi Va Van Chuyen",
+                    text = "Địa Chỉ Và Vận Chuyển",
                     fontSize = 17.sp,
                     fontWeight = FontWeight.Bold,
                     color = PrimaryText
@@ -249,16 +264,22 @@ fun ShippingAddressScreen(
                         )
                     }
                     Text(
-                        text = "Thay đổi >",
+                        text = if (isEditingAddress) "Lưu địa chỉ" else "Chỉnh sửa >",
                         fontSize = 12.sp,
                         fontWeight = FontWeight.Bold,
-                        color = SecondarySoftText
+                        color = SecondarySoftText,
+                        modifier = Modifier.clickable {
+                            if (isEditingAddress) {
+                                viewModel.updateAddress(editName, editPhone, editAddress)
+                            }
+                            isEditingAddress = !isEditingAddress
+                        }
                     )
                 }
 
                 Spacer(modifier = Modifier.height(10.dp))
 
-                // Address Box Card
+                // Address Box Card (Dynamic Inputs)
                 Box(
                     modifier = Modifier
                         .fillMaxWidth()
@@ -268,93 +289,125 @@ fun ShippingAddressScreen(
                         .border(1.dp, BorderDivider, RoundedCornerShape(20.dp))
                         .padding(14.dp)
                 ) {
-                    Column {
-                        Row(
-                            modifier = Modifier.fillMaxWidth(),
-                            horizontalArrangement = Arrangement.SpaceBetween,
-                            verticalAlignment = Alignment.CenterVertically
-                        ) {
+                    if (isEditingAddress) {
+                        Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                             Text(
-                                text = "Nguyễn Minh Châu • 0908 123 456",
-                                fontSize = 14.sp,
+                                text = "Nhập thông tin nhận hàng:",
+                                fontSize = 13.sp,
                                 fontWeight = FontWeight.Bold,
                                 color = PrimaryText
                             )
-
-                            Row {
-                                Box(
-                                    modifier = Modifier
-                                        .clip(RoundedCornerShape(6.dp))
-                                        .background(Color(0xFFFEE2E2))
-                                        .padding(horizontal = 6.dp, vertical = 2.dp)
-                                ) {
-                                    Text(
-                                        text = "Mặc định",
-                                        fontSize = 10.sp,
-                                        fontWeight = FontWeight.Bold,
-                                        color = DangerText
-                                    )
-                                }
-                                Spacer(modifier = Modifier.width(4.dp))
-                                Box(
-                                    modifier = Modifier
-                                        .clip(RoundedCornerShape(6.dp))
-                                        .background(SuccessBg)
-                                        .padding(horizontal = 6.dp, vertical = 2.dp)
-                                ) {
-                                    Text(
-                                        text = "Nhà riêng",
-                                        fontSize = 10.sp,
-                                        fontWeight = FontWeight.Bold,
-                                        color = SuccessText
-                                    )
-                                }
-                            }
+                            OutlinedTextField(
+                                value = editName,
+                                onValueChange = { editName = it },
+                                label = { Text("Tên người nhận", fontSize = 12.sp) },
+                                singleLine = true,
+                                modifier = Modifier.fillMaxWidth()
+                            )
+                            OutlinedTextField(
+                                value = editPhone,
+                                onValueChange = { editPhone = it },
+                                label = { Text("Số điện thoại", fontSize = 12.sp) },
+                                singleLine = true,
+                                modifier = Modifier.fillMaxWidth()
+                            )
+                            OutlinedTextField(
+                                value = editAddress,
+                                onValueChange = { editAddress = it },
+                                label = { Text("Địa chỉ chi tiết", fontSize = 12.sp) },
+                                modifier = Modifier.fillMaxWidth()
+                            )
                         }
-
-                        Spacer(modifier = Modifier.height(6.dp))
-
-                        Text(
-                            text = "Căn hộ 12.04, Tháp B, Chung cư Masteri Thảo Điền, 159 Xa Lộ Hà Nội, Phường Thảo Điền, Thành phố Thủ Đức, TP. Hồ Chí Minh",
-                            fontSize = 12.sp,
-                            color = SecondaryText,
-                            lineHeight = 17.sp
-                        )
-
-                        Spacer(modifier = Modifier.height(10.dp))
-
-                        Row(
-                            modifier = Modifier.fillMaxWidth(),
-                            horizontalArrangement = Arrangement.SpaceBetween,
-                            verticalAlignment = Alignment.CenterVertically
-                        ) {
-                            Row(verticalAlignment = Alignment.CenterVertically) {
-                                Icon(
-                                    painter = painterResource(id = R.drawable.ic_shield_check),
-                                    contentDescription = null,
-                                    tint = SuccessText,
-                                    modifier = Modifier.size(14.dp)
-                                )
-                                Spacer(modifier = Modifier.width(4.dp))
-                                Text(
-                                    text = "Địa chỉ thân thiện với thú cưng",
-                                    fontSize = 11.sp,
-                                    color = MutedText
-                                )
-                            }
-
-                            Box(
-                                modifier = Modifier
-                                    .clip(RoundedCornerShape(12.dp))
-                                    .background(SecondarySurface)
-                                    .padding(horizontal = 10.dp, vertical = 4.dp)
+                    } else {
+                        Column {
+                            Row(
+                                modifier = Modifier.fillMaxWidth(),
+                                horizontalArrangement = Arrangement.SpaceBetween,
+                                verticalAlignment = Alignment.CenterVertically
                             ) {
                                 Text(
-                                    text = "+ Thêm mới",
-                                    fontSize = 11.sp,
+                                    text = "${viewModel.recipientName} • ${viewModel.recipientPhone}",
+                                    fontSize = 14.sp,
                                     fontWeight = FontWeight.Bold,
-                                    color = SecondarySoftText
+                                    color = PrimaryText
                                 )
+
+                                Row {
+                                    Box(
+                                        modifier = Modifier
+                                            .clip(RoundedCornerShape(6.dp))
+                                            .background(Color(0xFFFEE2E2))
+                                            .padding(horizontal = 6.dp, vertical = 2.dp)
+                                    ) {
+                                        Text(
+                                            text = "Mặc định",
+                                            fontSize = 10.sp,
+                                            fontWeight = FontWeight.Bold,
+                                            color = DangerText
+                                        )
+                                    }
+                                    Spacer(modifier = Modifier.width(4.dp))
+                                    Box(
+                                        modifier = Modifier
+                                            .clip(RoundedCornerShape(6.dp))
+                                            .background(SuccessBg)
+                                            .padding(horizontal = 6.dp, vertical = 2.dp)
+                                    ) {
+                                        Text(
+                                            text = viewModel.addressType,
+                                            fontSize = 10.sp,
+                                            fontWeight = FontWeight.Bold,
+                                            color = SuccessText
+                                        )
+                                    }
+                                }
+                            }
+
+                            Spacer(modifier = Modifier.height(6.dp))
+
+                            Text(
+                                text = viewModel.fullAddress,
+                                fontSize = 12.sp,
+                                color = SecondaryText,
+                                lineHeight = 17.sp
+                            )
+
+                            Spacer(modifier = Modifier.height(10.dp))
+
+                            Row(
+                                modifier = Modifier.fillMaxWidth(),
+                                horizontalArrangement = Arrangement.SpaceBetween,
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                Row(verticalAlignment = Alignment.CenterVertically) {
+                                    Icon(
+                                        painter = painterResource(id = R.drawable.ic_shield_check),
+                                        contentDescription = null,
+                                        tint = SuccessText,
+                                        modifier = Modifier.size(14.dp)
+                                    )
+                                    Spacer(modifier = Modifier.width(4.dp))
+                                    Text(
+                                        text = "Địa chỉ thân thiện với thú cưng",
+                                        fontSize = 11.sp,
+                                        color = MutedText
+                                    )
+                                }
+
+                                Box(
+                                    modifier = Modifier
+                                        .clip(RoundedCornerShape(12.dp))
+                                        .background(SecondarySurface)
+                                        .clickable { isEditingAddress = true }
+                                        .padding(horizontal = 10.dp, vertical = 4.dp)
+                                ) {
+                                    Text(
+                                        text = "Thay đổi",
+                                        fontSize = 11.sp,
+                                        fontWeight = FontWeight.Bold,
+                                        color = SecondarySoftText
+                                    )
+                                }
                             }
                         }
                     }
@@ -388,7 +441,7 @@ fun ShippingAddressScreen(
                         .padding(12.dp),
                     contentAlignment = Alignment.TopStart
                 ) {
-                    if (noteInput.isEmpty()) {
+                    if (viewModel.shipperNote.isEmpty()) {
                         Text(
                             text = "Ví dụ: Nhà có cún nhỏ hay sủa vui lòng gọi trước, không bấm chuông gắt, để gói hàng trước cửa...",
                             fontSize = 12.sp,
@@ -397,8 +450,8 @@ fun ShippingAddressScreen(
                         )
                     }
                     BasicTextField(
-                        value = noteInput,
-                        onValueChange = { noteInput = it },
+                        value = viewModel.shipperNote,
+                        onValueChange = { viewModel.shipperNote = it },
                         textStyle = TextStyle(
                             fontSize = 12.sp,
                             fontWeight = FontWeight.Medium,
@@ -410,14 +463,13 @@ fun ShippingAddressScreen(
 
                 Spacer(modifier = Modifier.height(8.dp))
 
-                // Quick Chips
                 FlowRow(
                     horizontalArrangement = Arrangement.spacedBy(6.dp),
                     verticalArrangement = Arrangement.spacedBy(6.dp)
                 ) {
-                    NoteChip(text = "🐾 Không bấm chuông", onClick = { noteInput += " Không bấm chuông." })
-                    NoteChip(text = "⏰ Giờ hành chính", onClick = { noteInput += " Giao giờ hành chính." })
-                    NoteChip(text = "🏢 Để ở quầy lễ tân", onClick = { noteInput += " Để ở quầy lễ tân." })
+                    NoteChip(text = "🐾 Không bấm chuông", onClick = { viewModel.shipperNote += " Không bấm chuông." })
+                    NoteChip(text = "⏰ Giờ hành chính", onClick = { viewModel.shipperNote += " Giao giờ hành chính." })
+                    NoteChip(text = "🏢 Để ở quầy lễ tân", onClick = { viewModel.shipperNote += " Để ở quầy lễ tân." })
                 }
             }
 
@@ -466,8 +518,8 @@ fun ShippingAddressScreen(
                     deliveryTime = "⏰ Giao trước 16:30 chiều nay",
                     details = "🍃 Thức ăn tươi mát, đóng thùng carton chống sốc bảo vệ hạt cưng.",
                     highlightTag = "⚡ Ưu tiên bảo quản đông lạnh & pate tươi",
-                    isSelected = selectedShippingOption == 0,
-                    onClick = { selectedShippingOption = 0 }
+                    isSelected = viewModel.selectedShippingOptionIndex == 0,
+                    onClick = { viewModel.selectedShippingOptionIndex = 0 }
                 )
 
                 Spacer(modifier = Modifier.height(10.dp))
@@ -479,8 +531,8 @@ fun ShippingAddressScreen(
                     oldPrice = "25.000đ",
                     deliveryTime = "📅 Dự kiến: Ngày mai (10:00 – 18:00)",
                     details = "Phù hợp hạt khô, snack thưởng và đồ chơi không cần gấp.",
-                    isSelected = selectedShippingOption == 1,
-                    onClick = { selectedShippingOption = 1 }
+                    isSelected = viewModel.selectedShippingOptionIndex == 1,
+                    onClick = { viewModel.selectedShippingOptionIndex = 1 }
                 )
 
                 Spacer(modifier = Modifier.height(10.dp))
@@ -492,8 +544,8 @@ fun ShippingAddressScreen(
                     oldPrice = "18.000đ",
                     deliveryTime = "📅 Dự kiến: 2 – 3 ngày làm việc",
                     details = "Tối ưu cho cát vệ sinh bao lớn 10kg, chuồng quây, nệm bơ và cào móng.",
-                    isSelected = selectedShippingOption == 2,
-                    onClick = { selectedShippingOption = 2 }
+                    isSelected = viewModel.selectedShippingOptionIndex == 2,
+                    onClick = { viewModel.selectedShippingOptionIndex = 2 }
                 )
             }
 
@@ -608,42 +660,6 @@ fun ShippingAddressScreen(
                                     lineHeight = 15.sp
                                 )
                             }
-                        }
-                    }
-                }
-
-                Spacer(modifier = Modifier.height(12.dp))
-
-                // Care Assurance Banner
-                Box(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .clip(RoundedCornerShape(16.dp))
-                        .background(SecondarySurface)
-                        .padding(12.dp)
-                ) {
-                    Row(verticalAlignment = Alignment.CenterVertically) {
-                        Icon(
-                            painter = painterResource(id = R.drawable.ic_shield_check),
-                            contentDescription = null,
-                            tint = SuccessText,
-                            modifier = Modifier.size(20.dp)
-                        )
-                        Spacer(modifier = Modifier.width(10.dp))
-                        Column {
-                            Text(
-                                text = "Cam kết an toàn Avocado Care",
-                                fontSize = 13.sp,
-                                fontWeight = FontWeight.Bold,
-                                color = PrimaryText
-                            )
-                            Spacer(modifier = Modifier.height(2.dp))
-                            Text(
-                                text = "100% thức ăn nhập khẩu chính ngạch, đền gấp 3 nếu phát hiện cận date dưới 6 tháng.",
-                                fontSize = 11.sp,
-                                color = SecondaryText,
-                                lineHeight = 15.sp
-                            )
                         }
                     }
                 }

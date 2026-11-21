@@ -35,12 +35,17 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.viewmodel.compose.viewModel
+import coil.compose.AsyncImage
 import com.example.petshop.R
 import com.example.petshop.feature.cart.BreakdownRow
+import com.example.petshop.feature.cart.CartViewModel
 import com.example.petshop.ui.theme.AdminMaroon
 import com.example.petshop.ui.theme.BorderDivider
 import com.example.petshop.ui.theme.CardSurface
@@ -59,10 +64,22 @@ import com.example.petshop.ui.theme.SuccessText
 fun PaymentMethodScreen(
     onBack: () -> Unit = {},
     onPlaceOrder: () -> Unit = {},
-    onNavigateToProfile: () -> Unit = {}
+    onNavigateToProfile: () -> Unit = {},
+    viewModel: CheckoutViewModel = viewModel()
 ) {
-    var selectedPaymentMethodIndex by remember { mutableStateOf(1) } // 1: MoMo / ZaloPay
     var isVatInvoiceRequested by remember { mutableStateOf(false) }
+
+    val subtotal = viewModel.calculateSubtotal()
+    val discount = viewModel.calculateDiscount()
+    val shippingFee = viewModel.calculateShippingFee()
+    val totalPayment = viewModel.calculateTotalPayment()
+
+    val subtotalFormatted = CartViewModel.formatPrice(subtotal)
+    val discountFormatted = "-${CartViewModel.formatPrice(discount)}"
+    val shippingFeeFormatted = CartViewModel.formatPrice(shippingFee)
+    val totalPaymentFormatted = CartViewModel.formatPrice(totalPayment)
+
+    val items = viewModel.checkoutItems
 
     Scaffold(
         bottomBar = {
@@ -75,7 +92,6 @@ fun PaymentMethodScreen(
                     .padding(horizontal = 16.dp, vertical = 10.dp)
             ) {
                 Column {
-                    // Assurance Badges Row
                     Row(
                         modifier = Modifier
                             .fillMaxWidth()
@@ -103,7 +119,7 @@ fun PaymentMethodScreen(
                                     color = SecondaryText
                                 )
                                 Text(
-                                    text = "618.000đ",
+                                    text = totalPaymentFormatted,
                                     fontSize = 18.sp,
                                     fontWeight = FontWeight.ExtraBold,
                                     color = DangerText
@@ -172,7 +188,7 @@ fun PaymentMethodScreen(
                 }
 
                 Text(
-                    text = "Phuong Thuc Thanh Toan",
+                    text = "Phương Thức Thanh Toán",
                     fontSize = 17.sp,
                     fontWeight = FontWeight.Bold,
                     color = PrimaryText
@@ -245,7 +261,7 @@ fun PaymentMethodScreen(
 
             Spacer(modifier = Modifier.height(14.dp))
 
-            // ORDER SUMMARY COMPACT CARD
+            // ORDER SUMMARY COMPACT CARD (Dynamic from CheckoutViewModel)
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -271,7 +287,7 @@ fun PaymentMethodScreen(
                             )
                             Spacer(modifier = Modifier.width(6.dp))
                             Text(
-                                text = "Đơn từ Avocado Mall (3 món)",
+                                text = "Đơn từ Avocado Mall (${items.size} món)",
                                 fontSize = 14.sp,
                                 fontWeight = FontWeight.Bold,
                                 color = PrimaryText
@@ -291,45 +307,42 @@ fun PaymentMethodScreen(
                     Row(verticalAlignment = Alignment.CenterVertically) {
                         // Product Thumbnails Stack
                         Row(horizontalArrangement = Arrangement.spacedBy((-8).dp)) {
-                            Box(
-                                modifier = Modifier
-                                    .size(40.dp)
-                                    .clip(RoundedCornerShape(8.dp))
-                                    .background(Color(0xFFFFF7F2))
-                                    .border(1.dp, BorderDivider, RoundedCornerShape(8.dp)),
-                                contentAlignment = Alignment.Center
-                            ) { Text("🐱", fontSize = 20.sp) }
-
-                            Box(
-                                modifier = Modifier
-                                    .size(40.dp)
-                                    .clip(RoundedCornerShape(8.dp))
-                                    .background(Color(0xFFFFF7F2))
-                                    .border(1.dp, BorderDivider, RoundedCornerShape(8.dp)),
-                                contentAlignment = Alignment.Center
-                            ) { Text("🌱", fontSize = 20.sp) }
-
-                            Box(
-                                modifier = Modifier
-                                    .size(40.dp)
-                                    .clip(RoundedCornerShape(8.dp))
-                                    .background(Color(0xFFFFF7F2))
-                                    .border(1.dp, BorderDivider, RoundedCornerShape(8.dp)),
-                                contentAlignment = Alignment.Center
-                            ) { Text("🐟", fontSize = 20.sp) }
+                            items.take(3).forEach { item ->
+                                Box(
+                                    modifier = Modifier
+                                        .size(40.dp)
+                                        .clip(RoundedCornerShape(8.dp))
+                                        .background(Color(0xFFFFF7F2))
+                                        .border(1.dp, BorderDivider, RoundedCornerShape(8.dp)),
+                                    contentAlignment = Alignment.Center
+                                ) {
+                                    if (item.product.imageUrl.isNotEmpty()) {
+                                        AsyncImage(
+                                            model = item.product.imageUrl,
+                                            contentDescription = null,
+                                            contentScale = ContentScale.Crop,
+                                            modifier = Modifier.fillMaxSize()
+                                        )
+                                    } else {
+                                        Text(text = if (item.product.petType == "dog") "🐶" else "🐱", fontSize = 20.sp)
+                                    }
+                                }
+                            }
                         }
 
                         Spacer(modifier = Modifier.width(14.dp))
 
-                        Column {
+                        Column(modifier = Modifier.weight(1f)) {
                             Text(
-                                text = "Gói yêu thương Boss",
+                                text = items.firstOrNull()?.product?.title ?: "Gói yêu thương Boss",
                                 fontSize = 13.sp,
                                 fontWeight = FontWeight.Bold,
-                                color = PrimaryText
+                                color = PrimaryText,
+                                maxLines = 1,
+                                overflow = TextOverflow.Ellipsis
                             )
                             Text(
-                                text = "Royal Canin, Cát Tofu & Súp Ciao",
+                                text = "${viewModel.recipientName} • ${viewModel.recipientPhone}",
                                 fontSize = 11.sp,
                                 color = MutedText
                             )
@@ -338,7 +351,7 @@ fun PaymentMethodScreen(
 
                     Spacer(modifier = Modifier.height(10.dp))
 
-                    // Delivery tag
+                    // Delivery address tag
                     Box(
                         modifier = Modifier
                             .fillMaxWidth()
@@ -372,9 +385,11 @@ fun PaymentMethodScreen(
                                     }
                                 }
                                 Text(
-                                    text = "Masteri Thảo Điền, P. Thảo Điền, TP. Thủ Đức",
+                                    text = viewModel.fullAddress,
                                     fontSize = 11.sp,
-                                    color = MutedText
+                                    color = MutedText,
+                                    maxLines = 1,
+                                    overflow = TextOverflow.Ellipsis
                                 )
                             }
                         }
@@ -429,8 +444,8 @@ fun PaymentMethodScreen(
                     iconEmoji = "💵",
                     title = "Thanh toán khi nhận hàng (COD)",
                     subtitle = "Thanh toán tiền mặt cho shipper khi nhận gói hàng thức ăn cho bé",
-                    isSelected = selectedPaymentMethodIndex == 0,
-                    onClick = { selectedPaymentMethodIndex = 0 }
+                    isSelected = viewModel.selectedPaymentMethodIndex == 0,
+                    onClick = { viewModel.selectedPaymentMethodIndex = 0 }
                 )
 
                 Spacer(modifier = Modifier.height(8.dp))
@@ -442,8 +457,8 @@ fun PaymentMethodScreen(
                     badgeText = "Khuyên dùng",
                     subtitle = "Liên kết thanh toán 1 chạm, nhận thêm voucher hoàn xu 10.000đ",
                     tags = listOf("Voucher -10k hoàn tiền", "⚡ Xác nhận tức thì"),
-                    isSelected = selectedPaymentMethodIndex == 1,
-                    onClick = { selectedPaymentMethodIndex = 1 }
+                    isSelected = viewModel.selectedPaymentMethodIndex == 1,
+                    onClick = { viewModel.selectedPaymentMethodIndex = 1 }
                 )
 
                 Spacer(modifier = Modifier.height(8.dp))
@@ -453,8 +468,8 @@ fun PaymentMethodScreen(
                     iconEmoji = "🏦",
                     title = "Thẻ ATM / Quét mã VietQR",
                     subtitle = "Chuyển khoản tức thì miễn phí qua tất cả các ngân hàng Việt Nam (24/7)",
-                    isSelected = selectedPaymentMethodIndex == 2,
-                    onClick = { selectedPaymentMethodIndex = 2 }
+                    isSelected = viewModel.selectedPaymentMethodIndex == 2,
+                    onClick = { viewModel.selectedPaymentMethodIndex = 2 }
                 )
 
                 Spacer(modifier = Modifier.height(8.dp))
@@ -464,8 +479,8 @@ fun PaymentMethodScreen(
                     iconEmoji = "💳",
                     title = "Thẻ Quốc Tế (Visa, Master, JCB)",
                     subtitle = "Bảo mật chuẩn quốc tế OTP 3D-Secure 2.0 chống gian lận thẻ",
-                    isSelected = selectedPaymentMethodIndex == 3,
-                    onClick = { selectedPaymentMethodIndex = 3 }
+                    isSelected = viewModel.selectedPaymentMethodIndex == 3,
+                    onClick = { viewModel.selectedPaymentMethodIndex = 3 }
                 )
 
                 Spacer(modifier = Modifier.height(8.dp))
@@ -476,8 +491,8 @@ fun PaymentMethodScreen(
                     title = "Ví PetPay Trả Sau",
                     badgeText = "Lãi 0%",
                     subtitle = "Mua trước trả sau 0% lãi suất • Hạn mức khả dụng: 2.000.000đ (Kỳ hạn 30 ngày)",
-                    isSelected = selectedPaymentMethodIndex == 4,
-                    onClick = { selectedPaymentMethodIndex = 4 }
+                    isSelected = viewModel.selectedPaymentMethodIndex == 4,
+                    onClick = { viewModel.selectedPaymentMethodIndex = 4 }
                 )
             }
 
@@ -555,12 +570,9 @@ fun PaymentMethodScreen(
 
                     Spacer(modifier = Modifier.height(12.dp))
 
-                    BreakdownRow(label = "Tổng tiền hàng (3 món)", value = "653.000đ")
-                    BreakdownRow(label = "Phí vận chuyển hỏa tốc 2H", value = "35.000đ")
-                    BreakdownRow(label = "Giảm giá voucher shop (Pet Care)", value = "-30.000đ", isDiscount = true)
-                    BreakdownRow(label = "Giảm giá vận chuyển FastShip", value = "-25.000đ", isDiscount = true)
-                    BreakdownRow(label = "Giảm trừ điểm thưởng Pet Points (1.500 xu)", value = "-15.000đ", isDiscount = true)
-                    BreakdownRow(label = "Dịch vụ gói quà kèm nơ cho Boss", value = "+5.000đ")
+                    BreakdownRow(label = "Tổng tiền hàng (${items.size} món)", value = subtotalFormatted)
+                    BreakdownRow(label = "Phí vận chuyển", value = shippingFeeFormatted)
+                    BreakdownRow(label = "Giảm giá voucher & ưu đãi", value = discountFormatted, isDiscount = true)
 
                     Spacer(modifier = Modifier.height(10.dp))
                     Box(
@@ -592,7 +604,7 @@ fun PaymentMethodScreen(
 
                         Column(horizontalAlignment = Alignment.End) {
                             Text(
-                                text = "618.000đ",
+                                text = totalPaymentFormatted,
                                 fontSize = 22.sp,
                                 fontWeight = FontWeight.ExtraBold,
                                 color = AdminMaroon
