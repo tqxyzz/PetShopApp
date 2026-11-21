@@ -1,0 +1,42 @@
+[
+  {
+    "id": "c1",
+    "title": "Thức ăn hạt",
+    "iconEmoji": "🍚"
+  },
+  {
+    "id": "c2",
+    "title": "Pate & Ướt",
+    "iconEmoji": "🥫"
+  },
+  {
+    "id": "c3",
+    "title": "Bánh & Snack",
+    "iconEmoji": "🍪"
+  },
+  {
+    "id": "c4",
+    "title": "Phụ kiện chơi",
+    "iconEmoji": "🎾"
+  },
+  {
+    "id": "c5",
+    "title": "Cát vệ sinh",
+    "iconEmoji": "🧹"
+  },
+  {
+    "id": "c6",
+    "title": "Chuồng đệm",
+    "iconEmoji": "🛏️"
+  },
+  {
+    "id": "c7",
+    "title": "Vòng cổ dắt",
+    "iconEmoji": "🦮"
+  },
+  {
+    "id": "c8",
+    "title": "Y tế thú y",
+    "iconEmoji": "🧰"
+  }
+]

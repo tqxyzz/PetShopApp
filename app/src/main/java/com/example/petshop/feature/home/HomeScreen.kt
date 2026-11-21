@@ -94,6 +94,7 @@ fun HomeScreen(
     onNavigateToAssistant: () -> Unit = {},
     onNavigateToSearchHistory: () -> Unit = {},
     onNavigateToCameraScan: () -> Unit = {},
+    onNavigateToCategoryProductList: (String) -> Unit = {},
     viewModel: HomeViewModel = androidx.lifecycle.viewmodel.compose.viewModel()
 ) {
     var selectedTab by remember { mutableStateOf<HomeTab>(HomeTab.Home) }
@@ -101,6 +102,7 @@ fun HomeScreen(
 
     val allProducts = if (viewModel.productList.isNotEmpty()) viewModel.productList else sampleProducts
     val flashSaleProducts = if (viewModel.flashSaleList.isNotEmpty()) viewModel.flashSaleList else sampleFlashSaleProducts
+    val categories = if (viewModel.categoryList.isNotEmpty()) viewModel.categoryList else sampleCategories
 
     Scaffold(
         bottomBar = {
@@ -140,7 +142,7 @@ fun HomeScreen(
 
             Spacer(modifier = Modifier.height(12.dp))
 
-            // Admin Import Button Banner
+//            // Admin Import Button Banner
 //            val context = LocalContext.current
 //            var importStatus by remember { mutableStateOf<String?>(null) }
 //
@@ -184,7 +186,10 @@ fun HomeScreen(
             Spacer(modifier = Modifier.height(20.dp))
 
             // 4. Categories Section
-            HomeCategoriesSection()
+            HomeCategoriesSection(
+                categories = categories,
+                onCategoryClick = onNavigateToCategoryProductList
+            )
 
             Spacer(modifier = Modifier.height(20.dp))
 
@@ -688,7 +693,10 @@ fun HomeHeroBanner() {
 }
 
 @Composable
-fun HomeCategoriesSection() {
+fun HomeCategoriesSection(
+    categories: List<CategoryItem> = sampleCategories,
+    onCategoryClick: (String) -> Unit = {}
+) {
     Column(modifier = Modifier.padding(horizontal = 20.dp)) {
         // Section Header
         Row(
@@ -711,7 +719,7 @@ fun HomeCategoriesSection() {
             }
 
             Text(
-                text = "Tất cả (8)",
+                text = "Tất cả (${categories.size})",
                 fontSize = 13.sp,
                 fontWeight = FontWeight.Medium,
                 color = MutedText
@@ -721,15 +729,15 @@ fun HomeCategoriesSection() {
         Spacer(modifier = Modifier.height(14.dp))
 
         // 2 Rows x 4 Items Grid
-        val firstRow = sampleCategories.take(4)
-        val secondRow = sampleCategories.drop(4)
+        val firstRow = categories.take(4)
+        val secondRow = categories.drop(4)
 
         Row(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.SpaceAround
         ) {
             firstRow.forEach { cat ->
-                CategoryItemView(category = cat)
+                CategoryItemView(category = cat, onClick = { onCategoryClick(cat.title) })
             }
         }
 
@@ -740,17 +748,17 @@ fun HomeCategoriesSection() {
             horizontalArrangement = Arrangement.SpaceAround
         ) {
             secondRow.forEach { cat ->
-                CategoryItemView(category = cat)
+                CategoryItemView(category = cat, onClick = { onCategoryClick(cat.title) })
             }
         }
     }
 }
 
 @Composable
-fun CategoryItemView(category: CategoryItem) {
+fun CategoryItemView(category: CategoryItem, onClick: () -> Unit) {
     Column(
         horizontalAlignment = Alignment.CenterHorizontally,
-        modifier = Modifier.clickable { }
+        modifier = Modifier.clickable { onClick() }
     ) {
         Box(
             modifier = Modifier

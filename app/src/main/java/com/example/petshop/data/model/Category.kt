@@ -1,9 +1,9 @@
 package com.example.petshop.data.model
 
 data class CategoryItem(
-    val id: String,
-    val title: String,
-    val iconEmoji: String,
+    val id: String = "",
+    val title: String = "",
+    val iconEmoji: String = "🐾",
     val iconRes: Int? = null
 )
 
