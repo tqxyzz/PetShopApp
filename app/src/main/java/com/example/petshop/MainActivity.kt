@@ -138,6 +138,10 @@ class MainActivity : ComponentActivity() {
                                     },
                                     onNavigateToCameraScan = {
                                         currentScreen = AppScreen.CameraScan
+                                    },
+                                    onNavigateToCategoryProductList = { categoryTitle ->
+                                        activeCategoryTitle = categoryTitle
+                                        currentScreen = AppScreen.CategoryProductList
                                     }
                                 )
                             }
@@ -177,7 +181,7 @@ class MainActivity : ComponentActivity() {
                                 CategoryProductListScreen(
                                     categoryTitle = activeCategoryTitle,
                                     onBack = {
-                                        currentScreen = AppScreen.Category
+                                        currentScreen = AppScreen.Home
                                     }
                                 )
                             }

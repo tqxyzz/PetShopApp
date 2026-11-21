@@ -10,6 +10,8 @@
     "soldCount": "2.1k",
     "petType": "cat",
     "imageUrl": "https://images.unsplash.com/photo-1548767797-d8c844163c4c?w=500",
+    "category": "Thức ăn hạt",
+    "categoryId": "c1",
     "isFlashSale": true
   },
   {
@@ -23,6 +25,8 @@
     "soldCount": "5.4k",
     "petType": "cat",
     "imageUrl": "https://images.unsplash.com/photo-1583511655857-d19b40a7a54e?w=500",
+    "category": "Pate & Ướt",
+    "categoryId": "c2",
     "isFlashSale": true
   },
   {
@@ -36,6 +40,8 @@
     "soldCount": "1.8k",
     "petType": "cat",
     "imageUrl": "https://images.unsplash.com/photo-1514888286974-6c03e2ca1dba?w=500",
+    "category": "Cát vệ sinh",
+    "categoryId": "c5",
     "isFlashSale": false
   },
   {
@@ -49,6 +55,8 @@
     "soldCount": "950",
     "petType": "dog",
     "imageUrl": "https://images.unsplash.com/photo-1583337130417-3346a1be7dee?w=500",
+    "category": "Thức ăn hạt",
+    "categoryId": "c1",
     "isFlashSale": true
   },
   {
@@ -62,6 +70,8 @@
     "soldCount": "86%",
     "petType": "cat",
     "imageUrl": "https://images.unsplash.com/photo-1533738363-b7f9aef128ce?w=500",
+    "category": "Pate & Ướt",
+    "categoryId": "c2",
     "isFlashSale": true
   },
   {
@@ -75,6 +85,8 @@
     "soldCount": "4.2k",
     "petType": "cat",
     "imageUrl": "https://images.unsplash.com/photo-1574158622682-e40e69881006?w=500",
+    "category": "Pate & Ướt",
+    "categoryId": "c2",
     "isFlashSale": true
   },
   {
@@ -88,6 +100,8 @@
     "soldCount": "3.1k",
     "petType": "cat",
     "imageUrl": "https://images.unsplash.com/photo-1543852786-1cf6624b9987?w=500",
+    "category": "Thức ăn hạt",
+    "categoryId": "c1",
     "isFlashSale": false
   },
   {
@@ -101,6 +115,8 @@
     "soldCount": "92%",
     "petType": "cat",
     "imageUrl": "https://images.unsplash.com/photo-1545249390-6bdfa286032f?w=500",
+    "category": "Phụ kiện chơi",
+    "categoryId": "c4",
     "isFlashSale": true
   },
   {
@@ -114,6 +130,8 @@
     "soldCount": "810",
     "petType": "dog",
     "imageUrl": "https://images.unsplash.com/photo-1543466835-00a7907e9de1?w=500",
+    "category": "Thức ăn hạt",
+    "categoryId": "c1",
     "isFlashSale": false
   },
   {
@@ -127,6 +145,8 @@
     "soldCount": "1.5k",
     "petType": "cat",
     "imageUrl": "https://images.unsplash.com/photo-1561948955-570b270e7c36?w=500",
+    "category": "Y tế thú y",
+    "categoryId": "c8",
     "isFlashSale": true
   },
   {
@@ -140,6 +160,8 @@
     "soldCount": "950",
     "petType": "cat",
     "imageUrl": "https://images.unsplash.com/photo-1541599540903-216a46ca1dc0?w=500",
+    "category": "Chuồng đệm",
+    "categoryId": "c6",
     "isFlashSale": true
   },
   {
@@ -153,6 +175,8 @@
     "soldCount": "1.1k",
     "petType": "dog",
     "imageUrl": "https://images.unsplash.com/photo-1537151625747-768eb6cf92b2?w=500",
+    "category": "Thức ăn hạt",
+    "categoryId": "c1",
     "isFlashSale": false
   },
   {
@@ -166,6 +190,8 @@
     "soldCount": "2.3k",
     "petType": "cat",
     "imageUrl": "https://images.unsplash.com/photo-1513360371669-4adf3dd7dff8?w=500",
+    "category": "Pate & Ướt",
+    "categoryId": "c2",
     "isFlashSale": true
   },
   {
@@ -179,6 +205,8 @@
     "soldCount": "620",
     "petType": "cat",
     "imageUrl": "https://images.unsplash.com/photo-1514888286974-6c03e2ca1dba?w=500",
+    "category": "Thức ăn hạt",
+    "categoryId": "c1",
     "isFlashSale": false
   },
   {
@@ -192,6 +220,8 @@
     "soldCount": "430",
     "petType": "dog",
     "imageUrl": "https://images.unsplash.com/photo-1601758228041-f3b2795255f1?w=500",
+    "category": "Vòng cổ dắt",
+    "categoryId": "c7",
     "isFlashSale": true
   }
 ]

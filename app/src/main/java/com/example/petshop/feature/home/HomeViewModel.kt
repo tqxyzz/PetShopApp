@@ -4,6 +4,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
+import com.example.petshop.data.model.CategoryItem
 import com.example.petshop.data.model.FlashSaleItem
 import com.example.petshop.data.model.Product
 import com.google.firebase.firestore.FirebaseFirestore
@@ -20,6 +21,9 @@ class HomeViewModel : ViewModel() {
     var flashSaleItems by mutableStateOf<List<FlashSaleItem>>(emptyList())
         private set
 
+    var categoryList by mutableStateOf<List<CategoryItem>>(emptyList())
+        private set
+
     var isLoading by mutableStateOf(false)
         private set
 
@@ -28,6 +32,7 @@ class HomeViewModel : ViewModel() {
 
     init {
         fetchProductsFromFirestore()
+        fetchCategoriesFromFirestore()
     }
 
     fun fetchProductsFromFirestore() {
@@ -64,6 +69,19 @@ class HomeViewModel : ViewModel() {
             .addOnFailureListener { exception ->
                 isLoading = false
                 errorMessage = exception.localizedMessage
+            }
+    }
+
+    fun fetchCategoriesFromFirestore() {
+        db.collection("categories")
+            .get()
+            .addOnSuccessListener { result ->
+                val list = result.documents.mapNotNull { doc ->
+                    doc.toObject(CategoryItem::class.java)?.copy(id = doc.id)
+                }
+                if (list.isNotEmpty()) {
+                    categoryList = list
+                }
             }
     }
 }

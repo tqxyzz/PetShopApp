@@ -326,18 +326,18 @@ fun RegisterScreen(
                             else -> {
                                 isLoading = true
                                 FirebaseAuth.getInstance().createUserWithEmailAndPassword(accountInput.trim(), passwordInput)
-                                    .addOnCompleteListener { task ->
+                                    .addOnSuccessListener {
                                         isLoading = false
-                                        if (task.isSuccessful) {
-                                            val user = FirebaseAuth.getInstance().currentUser
-                                            val profileUpdates = UserProfileChangeRequest.Builder()
-                                                .setDisplayName(fullNameInput)
-                                                .build()
-                                            user?.updateProfile(profileUpdates)
-                                            onNavigateToHome()
-                                        } else {
-                                            errorMessage = task.exception?.localizedMessage ?: "Đăng ký thất bại"
-                                        }
+                                        val user = FirebaseAuth.getInstance().currentUser
+                                        val profileUpdates = UserProfileChangeRequest.Builder()
+                                            .setDisplayName(fullNameInput)
+                                            .build()
+                                        user?.updateProfile(profileUpdates)
+                                        onNavigateToHome()
+                                    }
+                                    .addOnFailureListener { e ->
+                                        isLoading = false
+                                        errorMessage = e.localizedMessage ?: "Đăng ký thất bại. Vui lòng kiểm tra lại mạng."
                                     }
                             }
                         }
