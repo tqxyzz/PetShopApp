@@ -33,6 +33,7 @@ import com.example.petshop.feature.product.ProductDetailScreen
 import com.example.petshop.feature.cart.CartViewModel
 import com.example.petshop.feature.checkout.CheckoutViewModel
 import com.example.petshop.feature.search.CameraScanScreen
+import com.google.firebase.auth.FirebaseAuth
 import com.example.petshop.feature.search.ImageSearchResultScreen
 import com.example.petshop.feature.search.SearchHistoryScreen
 import com.example.petshop.ui.theme.PetShopTheme
@@ -73,6 +74,14 @@ class MainActivity : ComponentActivity() {
                 val cartViewModel: CartViewModel = androidx.lifecycle.viewmodel.compose.viewModel()
                 val checkoutViewModel: CheckoutViewModel = androidx.lifecycle.viewmodel.compose.viewModel()
 
+                val checkAuthAndProceed: (() -> Unit) -> Unit = { action ->
+                    if (FirebaseAuth.getInstance().currentUser == null) {
+                        currentScreen = AppScreen.Login
+                    } else {
+                        action()
+                    }
+                }
+
                 Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
                     Box(modifier = Modifier.padding(innerPadding)) {
                         when (currentScreen) {
@@ -86,7 +95,7 @@ class MainActivity : ComponentActivity() {
                             is AppScreen.Onboarding -> {
                                 OnboardingScreen(
                                     onFinishOnboarding = {
-                                        currentScreen = AppScreen.Login
+                                        currentScreen = AppScreen.Home
                                     },
                                     onNavigateToLogin = {
                                         currentScreen = AppScreen.Login
@@ -134,7 +143,7 @@ class MainActivity : ComponentActivity() {
                                         currentScreen = AppScreen.Brand
                                     },
                                     onNavigateToCart = {
-                                        currentScreen = AppScreen.Cart
+                                        checkAuthAndProceed { currentScreen = AppScreen.Cart }
                                     },
                                     onNavigateToProductDetail = { prod ->
                                         selectedProduct = prod
@@ -244,11 +253,13 @@ class MainActivity : ComponentActivity() {
                                         currentScreen = AppScreen.CameraScan
                                     },
                                     onNavigateToCart = {
-                                        currentScreen = AppScreen.Cart
+                                        checkAuthAndProceed { currentScreen = AppScreen.Cart }
                                     },
                                     onAddToCart = { prod ->
-                                        cartViewModel.addToCart(prod)
-                                        currentScreen = AppScreen.Cart
+                                        checkAuthAndProceed {
+                                            cartViewModel.addToCart(prod)
+                                            currentScreen = AppScreen.Cart
+                                        }
                                     },
                                     onProductClick = { prod ->
                                         selectedProduct = prod
@@ -263,16 +274,20 @@ class MainActivity : ComponentActivity() {
                                         currentScreen = AppScreen.Home
                                     },
                                     onNavigateToCart = {
-                                        currentScreen = AppScreen.Cart
+                                        checkAuthAndProceed { currentScreen = AppScreen.Cart }
                                     },
                                     onAddToCart = { prod ->
-                                        cartViewModel.addToCart(prod)
+                                        checkAuthAndProceed {
+                                            cartViewModel.addToCart(prod)
+                                        }
                                     },
                                     onBuyNow = {
-                                        if (selectedProduct != null) {
-                                            checkoutViewModel.setDirectBuyNow(selectedProduct!!)
+                                        checkAuthAndProceed {
+                                            if (selectedProduct != null) {
+                                                checkoutViewModel.setDirectBuyNow(selectedProduct!!)
+                                            }
+                                            currentScreen = AppScreen.ShippingAddress
                                         }
-                                        currentScreen = AppScreen.ShippingAddress
                                     }
                                 )
                             }
