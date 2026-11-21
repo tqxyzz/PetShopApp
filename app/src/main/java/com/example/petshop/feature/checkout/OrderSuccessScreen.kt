@@ -47,6 +47,8 @@ import com.example.petshop.ui.theme.SecondarySoftText
 import com.example.petshop.ui.theme.SecondarySurface
 import com.example.petshop.ui.theme.SecondaryText
 import com.example.petshop.ui.theme.SuccessBg
+import androidx.lifecycle.viewmodel.compose.viewModel
+import com.example.petshop.feature.cart.CartViewModel
 import com.example.petshop.ui.theme.SuccessText
 
 @Composable
@@ -54,7 +56,8 @@ fun OrderSuccessScreen(
     onBack: () -> Unit = {},
     onNavigateToHome: () -> Unit = {},
     onNavigateToProfile: () -> Unit = {},
-    onTrackOrder: () -> Unit = {}
+    onTrackOrder: () -> Unit = {},
+    viewModel: CheckoutViewModel = viewModel()
 ) {
     Scaffold(
         containerColor = GlobalBackground
@@ -335,7 +338,7 @@ fun OrderSuccessScreen(
                                 .padding(horizontal = 8.dp, vertical = 4.dp)
                         ) {
                             Text(
-                                text = "3 món",
+                                text = "${viewModel.checkoutItems.size} món",
                                 fontSize = 11.sp,
                                 fontWeight = FontWeight.Bold,
                                 color = SecondarySoftText
@@ -394,19 +397,19 @@ fun OrderSuccessScreen(
                     OrderSummaryRow(
                         icon = "💳",
                         label = "Thanh toán",
-                        value = "Ví MoMo",
+                        value = if (viewModel.selectedPaymentMethodIndex == 0) "COD" else "Ví MoMo",
                         badge = "Thành công"
                     )
                     OrderSummaryRow(
                         icon = "💰",
                         label = "Tổng thanh toán",
-                        value = "540.000đ",
+                        value = CartViewModel.formatPrice(viewModel.calculateTotalPayment()),
                         isHighlight = true
                     )
                     OrderSummaryRow(
                         icon = "📍",
                         label = "Địa chỉ nhận",
-                        value = "Căn hộ 12.04 Tháp B, Masteri Thảo Điền, TP. Thủ Đức, TP. Hồ Chí Minh"
+                        value = "${viewModel.recipientName} • ${viewModel.recipientPhone} (${viewModel.fullAddress})"
                     )
                 }
             }

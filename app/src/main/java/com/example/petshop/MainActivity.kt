@@ -30,6 +30,8 @@ import com.example.petshop.feature.checkout.OrderSuccessScreen
 import com.example.petshop.feature.checkout.PaymentMethodScreen
 import com.example.petshop.feature.checkout.ShippingAddressScreen
 import com.example.petshop.feature.product.ProductDetailScreen
+import com.example.petshop.feature.cart.CartViewModel
+import com.example.petshop.feature.checkout.CheckoutViewModel
 import com.example.petshop.feature.search.CameraScanScreen
 import com.example.petshop.feature.search.ImageSearchResultScreen
 import com.example.petshop.feature.search.SearchHistoryScreen
@@ -66,6 +68,10 @@ class MainActivity : ComponentActivity() {
                 var currentScreen by remember { mutableStateOf<AppScreen>(AppScreen.Splash) }
                 var showForgotPasswordDialog by remember { mutableStateOf(false) }
                 var activeCategoryTitle by remember { mutableStateOf("Đồ Dùng & Thức Ăn Cho Chó") }
+                var activeSearchQuery by remember { mutableStateOf("hạt cho chó") }
+                var selectedProduct by remember { mutableStateOf<com.example.petshop.data.model.Product?>(null) }
+                val cartViewModel: CartViewModel = androidx.lifecycle.viewmodel.compose.viewModel()
+                val checkoutViewModel: CheckoutViewModel = androidx.lifecycle.viewmodel.compose.viewModel()
 
                 Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
                     Box(modifier = Modifier.padding(innerPadding)) {
@@ -130,7 +136,8 @@ class MainActivity : ComponentActivity() {
                                     onNavigateToCart = {
                                         currentScreen = AppScreen.Cart
                                     },
-                                    onNavigateToProductDetail = {
+                                    onNavigateToProductDetail = { prod ->
+                                        selectedProduct = prod
                                         currentScreen = AppScreen.ProductDetail
                                     },
                                     onNavigateToSearchHistory = {
@@ -190,7 +197,16 @@ class MainActivity : ComponentActivity() {
                                         currentScreen = AppScreen.CameraScan
                                     },
                                     onSearchSubmit = { query ->
+                                        activeSearchQuery = if (query.isNotBlank()) query else "hạt cho chó"
                                         currentScreen = AppScreen.ImageSearchResult
+                                    },
+                                    onProductClick = { prod ->
+                                        selectedProduct = prod
+                                        currentScreen = AppScreen.ProductDetail
+                                    },
+                                    onAddToCart = { prod ->
+                                        cartViewModel.addToCart(prod)
+                                        currentScreen = AppScreen.Cart
                                     }
                                 )
                             }
@@ -200,50 +216,65 @@ class MainActivity : ComponentActivity() {
                                         currentScreen = AppScreen.SearchHistory
                                     },
                                     onClose = {
-                                        currentScreen = AppScreen.Home
+                                        currentScreen = AppScreen.SearchHistory
                                     },
                                     onNavigateToHistory = {
                                         currentScreen = AppScreen.SearchHistory
                                     },
                                     onCapture = {
+                                        activeSearchQuery = "hạt cho chó"
                                         currentScreen = AppScreen.ImageSearchResult
                                     }
                                 )
                             }
                             is AppScreen.ImageSearchResult -> {
                                 ImageSearchResultScreen(
+                                    searchQuery = activeSearchQuery,
                                     onBack = {
-                                        currentScreen = AppScreen.CameraScan
+                                        currentScreen = AppScreen.SearchHistory
                                     },
                                     onClose = {
-                                        currentScreen = AppScreen.Home
+                                        currentScreen = AppScreen.SearchHistory
                                     },
                                     onNavigateToCameraScan = {
                                         currentScreen = AppScreen.CameraScan
                                     },
-                                    onAddToCart = {
+                                    onNavigateToCart = {
                                         currentScreen = AppScreen.Cart
                                     },
-                                    onBuyNow = {
+                                    onAddToCart = { prod ->
+                                        cartViewModel.addToCart(prod)
+                                        currentScreen = AppScreen.Cart
+                                    },
+                                    onProductClick = { prod ->
+                                        selectedProduct = prod
                                         currentScreen = AppScreen.ProductDetail
                                     }
                                 )
                             }
                             is AppScreen.ProductDetail -> {
                                 ProductDetailScreen(
+                                    product = selectedProduct,
                                     onBack = {
                                         currentScreen = AppScreen.Home
                                     },
                                     onNavigateToCart = {
                                         currentScreen = AppScreen.Cart
                                     },
+                                    onAddToCart = { prod ->
+                                        cartViewModel.addToCart(prod)
+                                    },
                                     onBuyNow = {
+                                        if (selectedProduct != null) {
+                                            checkoutViewModel.setDirectBuyNow(selectedProduct!!)
+                                        }
                                         currentScreen = AppScreen.ShippingAddress
                                     }
                                 )
                             }
                             is AppScreen.Cart -> {
                                 CartScreen(
+                                    viewModel = cartViewModel,
                                     onBack = {
                                         currentScreen = AppScreen.Home
                                     },
@@ -251,6 +282,7 @@ class MainActivity : ComponentActivity() {
                                         currentScreen = AppScreen.VoucherPetPoints
                                     },
                                     onNavigateToCheckout = {
+                                        checkoutViewModel.setCartCheckout(cartViewModel.cartItems)
                                         currentScreen = AppScreen.ShippingAddress
                                     }
                                 )
@@ -267,8 +299,9 @@ class MainActivity : ComponentActivity() {
                             }
                             is AppScreen.ShippingAddress -> {
                                 ShippingAddressScreen(
+                                    viewModel = checkoutViewModel,
                                     onBack = {
-                                        currentScreen = AppScreen.Cart
+                                        currentScreen = AppScreen.Home
                                     },
                                     onContinueToPayment = {
                                         currentScreen = AppScreen.PaymentMethod
@@ -277,6 +310,7 @@ class MainActivity : ComponentActivity() {
                             }
                             is AppScreen.PaymentMethod -> {
                                 PaymentMethodScreen(
+                                    viewModel = checkoutViewModel,
                                     onBack = {
                                         currentScreen = AppScreen.ShippingAddress
                                     },
@@ -287,6 +321,7 @@ class MainActivity : ComponentActivity() {
                             }
                             is AppScreen.OrderSuccess -> {
                                 OrderSuccessScreen(
+                                    viewModel = checkoutViewModel,
                                     onBack = {
                                         currentScreen = AppScreen.Home
                                     },

@@ -21,10 +21,12 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
@@ -41,7 +43,10 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.petshop.R
+import com.example.petshop.data.model.Product
+import com.example.petshop.ui.components.ProductCard
 import com.example.petshop.ui.theme.AdminMaroon
 import com.example.petshop.ui.theme.BorderDivider
 import com.example.petshop.ui.theme.CardSurface
@@ -69,9 +74,19 @@ fun SearchHistoryScreen(
     onBack: () -> Unit = {},
     onNavigateToCameraScan: () -> Unit = {},
     onNavigateToProfile: () -> Unit = {},
-    onSearchSubmit: (String) -> Unit = {}
+    onSearchSubmit: (String) -> Unit = {},
+    onProductClick: (Product) -> Unit = {},
+    onAddToCart: (Product) -> Unit = {},
+    viewModel: SearchViewModel = viewModel()
 ) {
     var searchQuery by remember { mutableStateOf("") }
+
+    LaunchedEffect(searchQuery) {
+        viewModel.onQueryChanged(searchQuery)
+    }
+
+    val liveResults = viewModel.searchResults
+    val isLoading = viewModel.isLoading
 
     val recentSearches = remember {
         mutableStateListOf(
@@ -230,14 +245,25 @@ fun SearchHistoryScreen(
                             )
                         }
 
-                        Icon(
-                            painter = painterResource(id = R.drawable.ic_camera),
-                            contentDescription = "Tìm bằng hình ảnh",
-                            tint = MutedText,
-                            modifier = Modifier
-                                .size(18.dp)
-                                .clickable { onNavigateToCameraScan() }
-                        )
+                        if (searchQuery.isNotEmpty()) {
+                            Icon(
+                                painter = painterResource(id = R.drawable.ic_close),
+                                contentDescription = "Xóa",
+                                tint = MutedText,
+                                modifier = Modifier
+                                    .size(18.dp)
+                                    .clickable { searchQuery = "" }
+                            )
+                        } else {
+                            Icon(
+                                painter = painterResource(id = R.drawable.ic_camera),
+                                contentDescription = "Tìm bằng hình ảnh",
+                                tint = MutedText,
+                                modifier = Modifier
+                                    .size(18.dp)
+                                    .clickable { onNavigateToCameraScan() }
+                            )
+                        }
                     }
                 }
 
@@ -249,7 +275,11 @@ fun SearchHistoryScreen(
                         .height(48.dp)
                         .clip(RoundedCornerShape(24.dp))
                         .background(PrimaryCTA)
-                        .clickable { onSearchSubmit(searchQuery) }
+                        .clickable {
+                            if (searchQuery.isNotBlank()) {
+                                onSearchSubmit(searchQuery)
+                            }
+                        }
                         .padding(horizontal = 20.dp),
                     contentAlignment = Alignment.Center
                 ) {
@@ -262,10 +292,10 @@ fun SearchHistoryScreen(
                 }
             }
 
-            Spacer(modifier = Modifier.height(16.dp))
+            Spacer(modifier = Modifier.height(12.dp))
 
-            // SECTION 1: Lịch sử tìm kiếm gần đây
-            if (recentSearches.isNotEmpty()) {
+            // LIVE SEARCH RESULTS (When user types a, b, c or any characters)
+            if (searchQuery.isNotBlank()) {
                 Column(modifier = Modifier.padding(horizontal = 16.dp)) {
                     Row(
                         modifier = Modifier.fillMaxWidth(),
@@ -274,310 +304,413 @@ fun SearchHistoryScreen(
                     ) {
                         Row(verticalAlignment = Alignment.CenterVertically) {
                             Icon(
-                                painter = painterResource(id = R.drawable.ic_history),
+                                painter = painterResource(id = R.drawable.ic_search),
                                 contentDescription = null,
-                                tint = SecondarySoftText,
+                                tint = PrimaryCTA,
                                 modifier = Modifier.size(18.dp)
                             )
                             Spacer(modifier = Modifier.width(6.dp))
                             Text(
-                                text = "Lịch sử tìm kiếm gần đây",
+                                text = "Sản phẩm gợi ý (${liveResults.size})",
                                 fontSize = 15.sp,
                                 fontWeight = FontWeight.Bold,
                                 color = PrimaryText
                             )
                         }
 
-                        Row(
-                            verticalAlignment = Alignment.CenterVertically,
-                            modifier = Modifier.clickable { recentSearches.clear() }
-                        ) {
-                            Icon(
-                                painter = painterResource(id = R.drawable.ic_trash),
-                                contentDescription = "Xóa tất cả",
-                                tint = DangerText,
-                                modifier = Modifier.size(14.dp)
-                            )
-                            Spacer(modifier = Modifier.width(4.dp))
+                        if (liveResults.isNotEmpty()) {
                             Text(
-                                text = "Xóa tất cả",
+                                text = "Xem tất cả >",
                                 fontSize = 12.sp,
-                                fontWeight = FontWeight.SemiBold,
-                                color = DangerText
+                                fontWeight = FontWeight.Bold,
+                                color = SecondarySoftText,
+                                modifier = Modifier.clickable { onSearchSubmit(searchQuery) }
                             )
                         }
                     }
 
-                    Spacer(modifier = Modifier.height(10.dp))
+                    Spacer(modifier = Modifier.height(12.dp))
 
-                    // Tags FlowRow
-                    FlowRow(
-                        horizontalArrangement = Arrangement.spacedBy(8.dp),
-                        verticalArrangement = Arrangement.spacedBy(8.dp),
-                        modifier = Modifier.fillMaxWidth()
-                    ) {
-                        recentSearches.forEach { query ->
-                            Row(
-                                verticalAlignment = Alignment.CenterVertically,
-                                modifier = Modifier
-                                    .clip(RoundedCornerShape(20.dp))
-                                    .background(CardSurface)
-                                    .border(1.dp, BorderDivider.copy(alpha = 0.5f), RoundedCornerShape(20.dp))
-                                    .clickable {
-                                        searchQuery = query
-                                        onSearchSubmit(query)
-                                    }
-                                    .padding(horizontal = 14.dp, vertical = 8.dp)
-                            ) {
+                    if (isLoading) {
+                        Box(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(24.dp),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            CircularProgressIndicator(color = PrimaryCTA)
+                        }
+                    } else if (liveResults.isEmpty()) {
+                        Box(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .shadow(2.dp, RoundedCornerShape(16.dp), ambientColor = BorderDivider)
+                                .clip(RoundedCornerShape(16.dp))
+                                .background(CardSurface)
+                                .padding(20.dp),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                                Text(text = "🔍", fontSize = 36.sp)
+                                Spacer(modifier = Modifier.height(6.dp))
                                 Text(
-                                    text = query,
+                                    text = "Không có sản phẩm phù hợp cho \"$searchQuery\"",
                                     fontSize = 13.sp,
-                                    color = SecondaryText,
-                                    fontWeight = FontWeight.Medium
+                                    fontWeight = FontWeight.Bold,
+                                    color = PrimaryText
+                                )
+                                Spacer(modifier = Modifier.height(2.dp))
+                                Text(
+                                    text = "Thử nhập \"hạt cho chó\", \"pate\", \"royal\"...",
+                                    fontSize = 11.sp,
+                                    color = MutedText
+                                )
+                            }
+                        }
+                    } else {
+                        // 2-Column Grid of Live Filtered Products from Firebase
+                        liveResults.chunked(2).forEach { pair ->
+                            Row(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(bottom = 12.dp),
+                                horizontalArrangement = Arrangement.spacedBy(12.dp)
+                            ) {
+                                pair.forEach { prod ->
+                                    ProductCard(
+                                        product = prod,
+                                        onProductClick = { onProductClick(prod) },
+                                        onAddToCart = { onAddToCart(prod) },
+                                        modifier = Modifier.weight(1f)
+                                    )
+                                }
+                                if (pair.size == 1) {
+                                    Spacer(modifier = Modifier.weight(1f))
+                                }
+                            }
+                        }
+                    }
+                }
+
+                Spacer(modifier = Modifier.height(20.dp))
+            } else {
+                // NORMAL SEARCH HISTORY & TRENDING UI (When input is empty)
+
+                // SECTION 1: Lịch sử tìm kiếm gần đây
+                if (recentSearches.isNotEmpty()) {
+                    Column(modifier = Modifier.padding(horizontal = 16.dp)) {
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.SpaceBetween,
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Row(verticalAlignment = Alignment.CenterVertically) {
+                                Icon(
+                                    painter = painterResource(id = R.drawable.ic_history),
+                                    contentDescription = null,
+                                    tint = SecondarySoftText,
+                                    modifier = Modifier.size(18.dp)
                                 )
                                 Spacer(modifier = Modifier.width(6.dp))
-                                Icon(
-                                    painter = painterResource(id = R.drawable.ic_close),
-                                    contentDescription = "Xóa",
-                                    tint = PlaceholderText,
-                                    modifier = Modifier
-                                        .size(14.dp)
-                                        .clickable { recentSearches.remove(query) }
+                                Text(
+                                    text = "Lịch sử tìm kiếm gần đây",
+                                    fontSize = 15.sp,
+                                    fontWeight = FontWeight.Bold,
+                                    color = PrimaryText
                                 )
+                            }
+
+                            Row(
+                                verticalAlignment = Alignment.CenterVertically,
+                                modifier = Modifier.clickable { recentSearches.clear() }
+                            ) {
+                                Icon(
+                                    painter = painterResource(id = R.drawable.ic_trash),
+                                    contentDescription = "Xóa tất cả",
+                                    tint = DangerText,
+                                    modifier = Modifier.size(14.dp)
+                                )
+                                Spacer(modifier = Modifier.width(4.dp))
+                                Text(
+                                    text = "Xóa tất cả",
+                                    fontSize = 12.sp,
+                                    fontWeight = FontWeight.SemiBold,
+                                    color = DangerText
+                                )
+                            }
+                        }
+
+                        Spacer(modifier = Modifier.height(10.dp))
+
+                        // Tags FlowRow
+                        FlowRow(
+                            horizontalArrangement = Arrangement.spacedBy(8.dp),
+                            verticalArrangement = Arrangement.spacedBy(8.dp),
+                            modifier = Modifier.fillMaxWidth()
+                        ) {
+                            recentSearches.forEach { query ->
+                                Row(
+                                    verticalAlignment = Alignment.CenterVertically,
+                                    modifier = Modifier
+                                        .clip(RoundedCornerShape(20.dp))
+                                        .background(CardSurface)
+                                        .border(1.dp, BorderDivider.copy(alpha = 0.5f), RoundedCornerShape(20.dp))
+                                        .clickable {
+                                            searchQuery = query
+                                            onSearchSubmit(query)
+                                        }
+                                        .padding(horizontal = 14.dp, vertical = 8.dp)
+                                ) {
+                                    Text(
+                                        text = query,
+                                        fontSize = 13.sp,
+                                        color = SecondaryText,
+                                        fontWeight = FontWeight.Medium
+                                    )
+                                    Spacer(modifier = Modifier.width(6.dp))
+                                    Icon(
+                                        painter = painterResource(id = R.drawable.ic_close),
+                                        contentDescription = "Xóa",
+                                        tint = PlaceholderText,
+                                        modifier = Modifier
+                                            .size(14.dp)
+                                            .clickable { recentSearches.remove(query) }
+                                    )
+                                }
+                            }
+                        }
+                    }
+
+                    Spacer(modifier = Modifier.height(24.dp))
+                }
+
+                // SECTION 2: Từ khóa xu hướng
+                Column(modifier = Modifier.padding(horizontal = 16.dp)) {
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            Icon(
+                                painter = painterResource(id = R.drawable.ic_flame),
+                                contentDescription = null,
+                                tint = PrimaryCTA,
+                                modifier = Modifier.size(20.dp)
+                            )
+                            Spacer(modifier = Modifier.width(6.dp))
+                            Text(
+                                text = "Từ khóa xu hướng",
+                                fontSize = 15.sp,
+                                fontWeight = FontWeight.Bold,
+                                color = PrimaryText
+                            )
+                        }
+
+                        Box(
+                            modifier = Modifier
+                                .clip(RoundedCornerShape(12.dp))
+                                .background(Color(0xFFFFE2DC))
+                                .padding(horizontal = 10.dp, vertical = 4.dp)
+                        ) {
+                            Text(
+                                text = "• Hot tuần này",
+                                fontSize = 11.sp,
+                                fontWeight = FontWeight.Bold,
+                                color = SecondarySoftText
+                            )
+                        }
+                    }
+
+                    Spacer(modifier = Modifier.height(12.dp))
+
+                    Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                        trendingKeywords.forEach { item ->
+                            Row(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .shadow(2.dp, RoundedCornerShape(16.dp), ambientColor = BorderDivider)
+                                    .clip(RoundedCornerShape(16.dp))
+                                    .background(CardSurface)
+                                    .clickable {
+                                        searchQuery = item.keyword
+                                        onSearchSubmit(item.keyword)
+                                    }
+                                    .padding(horizontal = 14.dp, vertical = 12.dp),
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                val (badgeBg, badgeTextColor) = when (item.rank) {
+                                    1 -> PrimaryCTA to Color.White
+                                    2, 3 -> SecondarySoft to SecondarySoftText
+                                    else -> SecondarySurface to SecondaryText
+                                }
+
+                                Box(
+                                    modifier = Modifier
+                                        .size(28.dp)
+                                        .clip(CircleShape)
+                                        .background(badgeBg),
+                                    contentAlignment = Alignment.Center
+                                ) {
+                                    Text(
+                                        text = item.rank.toString(),
+                                        fontSize = 12.sp,
+                                        fontWeight = FontWeight.Bold,
+                                        color = badgeTextColor
+                                    )
+                                }
+
+                                Spacer(modifier = Modifier.width(12.dp))
+
+                                Column(modifier = Modifier.weight(1f)) {
+                                    Text(
+                                        text = item.keyword,
+                                        fontSize = 13.sp,
+                                        fontWeight = FontWeight.Bold,
+                                        color = PrimaryText,
+                                        maxLines = 1,
+                                        overflow = TextOverflow.Ellipsis
+                                    )
+                                    Spacer(modifier = Modifier.height(2.dp))
+                                    Text(
+                                        text = item.searchCount,
+                                        fontSize = 11.sp,
+                                        color = MutedText
+                                    )
+                                }
+
+                                if (item.isHot) {
+                                    Icon(
+                                        painter = painterResource(id = R.drawable.ic_flame),
+                                        contentDescription = null,
+                                        tint = PrimaryCTA,
+                                        modifier = Modifier.size(18.dp)
+                                    )
+                                }
                             }
                         }
                     }
                 }
 
                 Spacer(modifier = Modifier.height(24.dp))
-            }
 
-            // SECTION 2: Từ khóa xu hướng
-            Column(modifier = Modifier.padding(horizontal = 16.dp)) {
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
+                // SECTION 3: Khám phá danh mục được quan tâm
+                Column(modifier = Modifier.padding(horizontal = 16.dp)) {
                     Row(verticalAlignment = Alignment.CenterVertically) {
                         Icon(
-                            painter = painterResource(id = R.drawable.ic_flame),
+                            painter = painterResource(id = R.drawable.ic_category),
                             contentDescription = null,
                             tint = PrimaryCTA,
                             modifier = Modifier.size(20.dp)
                         )
                         Spacer(modifier = Modifier.width(6.dp))
                         Text(
-                            text = "Từ khóa xu hướng",
+                            text = "Khám phá danh mục được quan tâm",
                             fontSize = 15.sp,
                             fontWeight = FontWeight.Bold,
                             color = PrimaryText
                         )
                     }
 
-                    // Hot badge
-                    Box(
-                        modifier = Modifier
-                            .clip(RoundedCornerShape(12.dp))
-                            .background(Color(0xFFFFE2DC))
-                            .padding(horizontal = 10.dp, vertical = 4.dp)
-                    ) {
-                        Text(
-                            text = "• Hot tuần này",
-                            fontSize = 11.sp,
-                            fontWeight = FontWeight.Bold,
-                            color = SecondarySoftText
-                        )
-                    }
-                }
+                    Spacer(modifier = Modifier.height(12.dp))
 
-                Spacer(modifier = Modifier.height(12.dp))
-
-                // Trending Items List
-                Column(
-                    verticalArrangement = Arrangement.spacedBy(8.dp)
-                ) {
-                    trendingKeywords.forEach { item ->
+                    Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
                         Row(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .shadow(2.dp, RoundedCornerShape(16.dp), ambientColor = BorderDivider)
-                                .clip(RoundedCornerShape(16.dp))
-                                .background(CardSurface)
-                                .clickable {
-                                    searchQuery = item.keyword
-                                    onSearchSubmit(item.keyword)
-                                }
-                                .padding(horizontal = 14.dp, vertical = 12.dp),
-                            verticalAlignment = Alignment.CenterVertically
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.spacedBy(10.dp)
                         ) {
-                            // Rank Circle
-                            val (badgeBg, badgeTextColor) = when (item.rank) {
-                                1 -> PrimaryCTA to Color.White
-                                2, 3 -> SecondarySoft to SecondarySoftText
-                                else -> SecondarySurface to SecondaryText
-                            }
+                            CategoryExploreCard(
+                                emoji = "🐶",
+                                title = "Dành cho Cún",
+                                subtitle = "Hạt, xương & p...",
+                                bgColor = Color(0xFFFFF1EA),
+                                modifier = Modifier.weight(1f),
+                                onClick = {
+                                    searchQuery = "hạt cho chó"
+                                    onSearchSubmit("hạt cho chó")
+                                }
+                            )
+                            CategoryExploreCard(
+                                emoji = "🐱",
+                                title = "Dành cho Mèo",
+                                subtitle = "Pate, cát & đồ...",
+                                bgColor = Color(0xFFDCFCE7),
+                                modifier = Modifier.weight(1f),
+                                onClick = {
+                                    searchQuery = "hạt cho mèo"
+                                    onSearchSubmit("hạt cho mèo")
+                                }
+                            )
+                        }
 
-                            Box(
-                                modifier = Modifier
-                                    .size(28.dp)
-                                    .clip(CircleShape)
-                                    .background(badgeBg),
-                                contentAlignment = Alignment.Center
-                            ) {
-                                Text(
-                                    text = item.rank.toString(),
-                                    fontSize = 12.sp,
-                                    fontWeight = FontWeight.Bold,
-                                    color = badgeTextColor
-                                )
-                            }
-
-                            Spacer(modifier = Modifier.width(12.dp))
-
-                            // Keyword Content
-                            Column(modifier = Modifier.weight(1f)) {
-                                Text(
-                                    text = item.keyword,
-                                    fontSize = 13.sp,
-                                    fontWeight = FontWeight.Bold,
-                                    color = PrimaryText,
-                                    maxLines = 1,
-                                    overflow = TextOverflow.Ellipsis
-                                )
-                                Spacer(modifier = Modifier.height(2.dp))
-                                Text(
-                                    text = item.searchCount,
-                                    fontSize = 11.sp,
-                                    color = MutedText
-                                )
-                            }
-
-                            // Flame Icon for Hot items
-                            if (item.isHot) {
-                                Icon(
-                                    painter = painterResource(id = R.drawable.ic_flame),
-                                    contentDescription = null,
-                                    tint = PrimaryCTA,
-                                    modifier = Modifier.size(18.dp)
-                                )
-                            }
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.spacedBy(10.dp)
+                        ) {
+                            CategoryExploreCard(
+                                emoji = "⚡",
+                                title = "Ưu đãi Flash",
+                                subtitle = "Giảm sốc tới 50%...",
+                                bgColor = Color(0xFFFFE2DC),
+                                modifier = Modifier.weight(1f)
+                            )
+                            CategoryExploreCard(
+                                emoji = "🎁",
+                                title = "Voucher Hot",
+                                subtitle = "Mã giảm 50k &...",
+                                bgColor = Color(0xFFFEF3C7),
+                                modifier = Modifier.weight(1f)
+                            )
                         }
                     }
                 }
-            }
 
-            Spacer(modifier = Modifier.height(24.dp))
+                Spacer(modifier = Modifier.height(24.dp))
 
-            // SECTION 3: Khám phá danh mục được quan tâm
-            Column(modifier = Modifier.padding(horizontal = 16.dp)) {
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    Icon(
-                        painter = painterResource(id = R.drawable.ic_category),
-                        contentDescription = null,
-                        tint = PrimaryCTA,
-                        modifier = Modifier.size(20.dp)
-                    )
-                    Spacer(modifier = Modifier.width(6.dp))
-                    Text(
-                        text = "Khám phá danh mục được quan tâm",
-                        fontSize = 15.sp,
-                        fontWeight = FontWeight.Bold,
-                        color = PrimaryText
-                    )
-                }
+                // BOTTOM BANNER CARD
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 16.dp)
+                        .clip(RoundedCornerShape(20.dp))
+                        .background(SecondarySurface)
+                        .border(1.dp, BorderDivider, RoundedCornerShape(20.dp))
+                        .clickable { onNavigateToCameraScan() }
+                        .padding(16.dp)
+                ) {
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Box(
+                            modifier = Modifier
+                                .size(44.dp)
+                                .clip(CircleShape)
+                                .background(Color(0xFFFFE2DC)),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Text(text = "🥑", fontSize = 22.sp)
+                        }
 
-                Spacer(modifier = Modifier.height(12.dp))
+                        Spacer(modifier = Modifier.width(12.dp))
 
-                // 2x2 Grid of Category Cards
-                Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.spacedBy(10.dp)
-                    ) {
-                        CategoryExploreCard(
-                            emoji = "🐶",
-                            title = "Dành cho Cún",
-                            subtitle = "Hạt, xương & p...",
-                            bgColor = Color(0xFFFFF1EA),
-                            modifier = Modifier.weight(1f)
-                        )
-                        CategoryExploreCard(
-                            emoji = "🐱",
-                            title = "Dành cho Mèo",
-                            subtitle = "Pate, cát & đồ...",
-                            bgColor = Color(0xFFDCFCE7),
-                            modifier = Modifier.weight(1f)
-                        )
-                    }
-
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.spacedBy(10.dp)
-                    ) {
-                        CategoryExploreCard(
-                            emoji = "⚡",
-                            title = "Ưu đãi Flash",
-                            subtitle = "Giảm sốc tới 50%...",
-                            bgColor = Color(0xFFFFE2DC),
-                            modifier = Modifier.weight(1f)
-                        )
-                        CategoryExploreCard(
-                            emoji = "🎁",
-                            title = "Voucher Hot",
-                            subtitle = "Mã giảm 50k &...",
-                            bgColor = Color(0xFFFEF3C7),
-                            modifier = Modifier.weight(1f)
-                        )
+                        Column(modifier = Modifier.weight(1f)) {
+                            Text(
+                                text = "Bạn đang tìm sản phẩm đặc trị?",
+                                fontSize = 14.sp,
+                                fontWeight = FontWeight.Bold,
+                                color = PrimaryText
+                            )
+                            Spacer(modifier = Modifier.height(2.dp))
+                            Text(
+                                text = "Bé cưng bị kén ăn hoặc viêm da? Dùng camera để chúng mình gợi ý ngay nhé!",
+                                fontSize = 12.sp,
+                                color = SecondaryText,
+                                lineHeight = 16.sp
+                            )
+                        }
                     }
                 }
+
+                Spacer(modifier = Modifier.height(24.dp))
             }
-
-            Spacer(modifier = Modifier.height(24.dp))
-
-            // BOTTOM BANNER CARD: Special Product Suggestion
-            Box(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = 16.dp)
-                    .clip(RoundedCornerShape(20.dp))
-                    .background(SecondarySurface)
-                    .border(1.dp, BorderDivider, RoundedCornerShape(20.dp))
-                    .clickable { onNavigateToCameraScan() }
-                    .padding(16.dp)
-            ) {
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    Box(
-                        modifier = Modifier
-                            .size(44.dp)
-                            .clip(CircleShape)
-                            .background(Color(0xFFFFE2DC)),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        Text(text = "🥑", fontSize = 22.sp)
-                    }
-
-                    Spacer(modifier = Modifier.width(12.dp))
-
-                    Column(modifier = Modifier.weight(1f)) {
-                        Text(
-                            text = "Bạn đang tìm sản phẩm đặc trị?",
-                            fontSize = 14.sp,
-                            fontWeight = FontWeight.Bold,
-                            color = PrimaryText
-                        )
-                        Spacer(modifier = Modifier.height(2.dp))
-                        Text(
-                            text = "Bé cưng bị kén ăn hoặc viêm da? Dùng camera để chúng mình gợi ý ngay nhé!",
-                            fontSize = 12.sp,
-                            color = SecondaryText,
-                            lineHeight = 16.sp
-                        )
-                    }
-                }
-            }
-
-            Spacer(modifier = Modifier.height(24.dp))
         }
     }
 }
