@@ -42,11 +42,15 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.res.painterResource
+import coil.compose.AsyncImage
 import com.example.petshop.R
 import com.example.petshop.data.model.FlashSaleItem
 import com.example.petshop.data.model.TimeSlot
 import com.example.petshop.data.model.sampleFlashSaleItems
 import com.example.petshop.data.model.sampleTimeSlots
+import com.example.petshop.feature.home.HomeViewModel
 import com.example.petshop.ui.theme.AdminMaroon
 import com.example.petshop.ui.theme.BorderDivider
 import com.example.petshop.ui.theme.CardSurface
@@ -66,11 +70,14 @@ fun FlashSaleScreen(
     onBack: () -> Unit,
     onNavigateToCart: () -> Unit = {},
     onAddToCart: (FlashSaleItem) -> Unit = {},
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    viewModel: HomeViewModel = androidx.lifecycle.viewmodel.compose.viewModel()
 ) {
     var selectedTimeSlot by remember { mutableStateOf("09:00") }
     var selectedCategoryFilter by remember { mutableStateOf("Tất cả") }
     val scrollState = rememberScrollState()
+
+    val flashSaleItems = if (viewModel.flashSaleItems.isNotEmpty()) viewModel.flashSaleItems else sampleFlashSaleItems
 
     Column(
         modifier = modifier
@@ -275,7 +282,7 @@ fun FlashSaleScreen(
         Spacer(modifier = Modifier.height(16.dp))
 
         // 5. Flash Sale Items List
-        val filteredItems = sampleFlashSaleItems.filter { item ->
+        val filteredItems = flashSaleItems.filter { item ->
             selectedCategoryFilter == "Tất cả" || item.category.contains(selectedCategoryFilter, ignoreCase = true)
         }
 
@@ -438,7 +445,16 @@ fun FlashSaleDetailCard(
                     .background(Color(0xFFFFF7F2)),
                 contentAlignment = Alignment.Center
             ) {
-                Text(text = item.petEmoji, fontSize = 44.sp)
+                if (item.imageUrl.isNotEmpty()) {
+                    AsyncImage(
+                        model = item.imageUrl,
+                        contentDescription = null,
+                        contentScale = ContentScale.Crop,
+                        modifier = Modifier.fillMaxSize()
+                    )
+                } else {
+                    Text(text = item.petEmoji, fontSize = 44.sp)
+                }
 
                 // Discount Tag attached top-left
                 Box(
