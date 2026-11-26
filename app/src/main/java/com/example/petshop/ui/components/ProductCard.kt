@@ -84,7 +84,6 @@ fun ProductCard(
                         modifier = Modifier.fillMaxSize()
                     )
                 } else {
-                    // Product Mock Graphic / Illustration
                     Column(horizontalAlignment = Alignment.CenterHorizontally) {
                         Text(
                             text = when (product.petType) {
@@ -102,7 +101,6 @@ fun ProductCard(
                     }
                 }
 
-                // Top-Left Badge (e.g. "Bán chạy", "Thảo mộc", "Mới về")
                 if (!product.badge.isNullOrEmpty()) {
                     val (bgColor, textColor) = when (product.badgeColor) {
                         "green" -> Color(0xFFDCFCE7) to Color(0xFF15803D)
@@ -152,7 +150,6 @@ fun ProductCard(
             Column(
                 modifier = Modifier.padding(12.dp)
             ) {
-                // Brand Text
                 Text(
                     text = product.brand,
                     fontSize = 10.sp,
@@ -163,7 +160,6 @@ fun ProductCard(
 
                 Spacer(modifier = Modifier.height(2.dp))
 
-                // Product Title
                 Text(
                     text = product.title,
                     fontSize = 13.sp,
@@ -176,7 +172,6 @@ fun ProductCard(
 
                 Spacer(modifier = Modifier.height(6.dp))
 
-                // Rating & Sales Count
                 Row(
                     verticalAlignment = Alignment.CenterVertically
                 ) {
@@ -202,14 +197,12 @@ fun ProductCard(
 
                 Spacer(modifier = Modifier.height(8.dp))
 
-                // Price Row & Cart Action Button
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.SpaceBetween,
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     Column {
-                        // Current Price
                         Text(
                             text = product.currentPrice,
                             fontSize = 15.sp,
@@ -217,7 +210,6 @@ fun ProductCard(
                             color = PrimaryText
                         )
 
-                        // Old Price & Discount Badge
                         if (!product.oldPrice.isNullOrEmpty()) {
                             Row(verticalAlignment = Alignment.CenterVertically) {
                                 Text(
@@ -239,7 +231,6 @@ fun ProductCard(
                         }
                     }
 
-                    // Cart Action Circle Button
                     Box(
                         modifier = Modifier
                             .size(36.dp)

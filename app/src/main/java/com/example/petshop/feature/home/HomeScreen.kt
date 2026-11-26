@@ -281,7 +281,7 @@ fun HomeScreen(
                             ProductCard(
                                 product = product,
                                 onProductClick = onNavigateToProductDetail,
-                                onAddToCart = {},
+                                onAddToCart = { prod -> onNavigateToProductDetail(prod) },
                                 modifier = Modifier.weight(1f)
                             )
                         }

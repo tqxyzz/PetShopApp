@@ -1,5 +1,20 @@
 package com.example.petshop.feature.search
 
+import android.Manifest
+import android.content.pm.PackageManager
+import android.graphics.Bitmap
+import android.graphics.BitmapFactory
+import android.net.Uri
+import android.util.Log
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
+import androidx.camera.core.CameraSelector
+import androidx.camera.core.ImageCapture
+import androidx.camera.core.ImageCaptureException
+import androidx.camera.core.ImageProxy
+import androidx.camera.core.Preview
+import androidx.camera.lifecycle.ProcessCameraProvider
+import androidx.camera.view.PreviewView
 import androidx.compose.animation.core.LinearEasing
 import androidx.compose.animation.core.RepeatMode
 import androidx.compose.animation.core.animateFloat
@@ -27,10 +42,12 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -38,18 +55,21 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.viewinterop.AndroidView
+import androidx.core.content.ContextCompat
+import androidx.lifecycle.compose.LocalLifecycleOwner
+import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.petshop.R
 import com.example.petshop.ui.theme.AdminMaroon
 import com.example.petshop.ui.theme.BorderDivider
-import com.example.petshop.ui.theme.CardSurface
 import com.example.petshop.ui.theme.GlobalBackground
 import com.example.petshop.ui.theme.MutedText
 import com.example.petshop.ui.theme.PrimaryCTA
@@ -61,14 +81,26 @@ import com.example.petshop.ui.theme.SecondaryText
 import com.example.petshop.ui.theme.SuccessBg
 import com.example.petshop.ui.theme.SuccessText
 
+fun imageProxyToBitmap(imageProxy: ImageProxy): Bitmap {
+    val planeProxy = imageProxy.planes[0]
+    val buffer = planeProxy.buffer
+    val bytes = ByteArray(buffer.remaining())
+    buffer.get(bytes)
+    return BitmapFactory.decodeByteArray(bytes, 0, bytes.size)
+}
+
 @Composable
 fun CameraScanScreen(
     onBack: () -> Unit = {},
     onClose: () -> Unit = {},
     onNavigateToProfile: () -> Unit = {},
     onNavigateToHistory: () -> Unit = {},
-    onCapture: () -> Unit = {}
+    onCapture: () -> Unit = {},
+    viewModel: VisualSearchViewModel = viewModel()
 ) {
+    val context = LocalContext.current
+    val lifecycleOwner = LocalLifecycleOwner.current
+
     var selectedCategoryIndex by remember { mutableStateOf(0) }
     val scanCategories = listOf(
         "✨ Tự động nhận diện",
@@ -76,6 +108,37 @@ fun CameraScanScreen(
         "🚗 Đồ dùng & Đồ chơi",
         "💊 Y tế & Chăm sóc"
     )
+
+    // Camera permission handling
+    var hasCameraPermission by remember {
+        mutableStateOf(
+            ContextCompat.checkSelfPermission(context, Manifest.permission.CAMERA) == PackageManager.PERMISSION_GRANTED
+        )
+    }
+
+    val permissionLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.RequestPermission()
+    ) { isGranted: Boolean ->
+        hasCameraPermission = isGranted
+    }
+
+    LaunchedEffect(Unit) {
+        if (!hasCameraPermission) {
+            permissionLauncher.launch(Manifest.permission.CAMERA)
+        }
+    }
+
+    // Gallery image picker launcher
+    val galleryLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.GetContent()
+    ) { uri: Uri? ->
+        if (uri != null) {
+            viewModel.onGalleryImageSelected(context, uri)
+            onCapture()
+        }
+    }
+
+    var imageCapture: ImageCapture? by remember { mutableStateOf(null) }
 
     // Scanning animation laser position
     val infiniteTransition = rememberInfiniteTransition(label = "scan_line")
@@ -88,6 +151,34 @@ fun CameraScanScreen(
         ),
         label = "laser"
     )
+
+    fun takePhotoAndSearch() {
+        val capture = imageCapture ?: run {
+            onCapture()
+            return
+        }
+
+        capture.takePicture(
+            ContextCompat.getMainExecutor(context),
+            object : ImageCapture.OnImageCapturedCallback() {
+                override fun onCaptureSuccess(imageProxy: ImageProxy) {
+                    try {
+                        val bitmap = imageProxyToBitmap(imageProxy)
+                        imageProxy.close()
+                        viewModel.onImageCaptured(bitmap)
+                    } catch (e: Exception) {
+                        imageProxy.close()
+                    }
+                    onCapture()
+                }
+
+                override fun onError(exception: ImageCaptureException) {
+                    Log.e("CameraScanScreen", "Image capture error: ${exception.localizedMessage}")
+                    onCapture()
+                }
+            }
+        )
+    }
 
     Scaffold(
         containerColor = GlobalBackground
@@ -169,7 +260,7 @@ fun CameraScanScreen(
                 }
             }
 
-            // MAIN CAMERA VIEWFINDER CONTAINER
+            // MAIN CAMERA VIEWFINDER CONTAINER (CameraX Integration)
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -178,57 +269,91 @@ fun CameraScanScreen(
                     .clip(RoundedCornerShape(32.dp))
                     .background(Color(0xFF5C493E))
             ) {
-                // Mock Camera Preview Background Graphic
-                Box(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .background(
-                            Brush.verticalGradient(
-                                colors = listOf(
-                                    Color(0xFF3B2A20),
-                                    Color(0xFF6E5646),
-                                    Color(0xFF4A372C)
+                if (hasCameraPermission) {
+                    // CameraX Live Preview View
+                    AndroidView(
+                        factory = { ctx ->
+                            val previewView = PreviewView(ctx)
+                            val cameraProviderFuture = ProcessCameraProvider.getInstance(ctx)
+
+                            cameraProviderFuture.addListener({
+                                val cameraProvider = cameraProviderFuture.get()
+                                val preview = Preview.Builder().build().also {
+                                    it.setSurfaceProvider(previewView.surfaceProvider)
+                                }
+
+                                imageCapture = ImageCapture.Builder()
+                                    .setCaptureMode(ImageCapture.CAPTURE_MODE_MINIMIZE_LATENCY)
+                                    .build()
+
+                                val cameraSelector = if (viewModel.isCameraFront) {
+                                    CameraSelector.DEFAULT_FRONT_CAMERA
+                                } else {
+                                    CameraSelector.DEFAULT_BACK_CAMERA
+                                }
+
+                                try {
+                                    cameraProvider.unbindAll()
+                                    val camera = cameraProvider.bindToLifecycle(
+                                        lifecycleOwner,
+                                        cameraSelector,
+                                        preview,
+                                        imageCapture
+                                    )
+
+                                    if (camera.cameraInfo.hasFlashUnit()) {
+                                        camera.cameraControl.enableTorch(viewModel.isFlashOn)
+                                    }
+                                } catch (e: Exception) {
+                                    Log.e("CameraScanScreen", "Camera binding failed", e)
+                                }
+                            }, ContextCompat.getMainExecutor(ctx))
+
+                            previewView
+                        },
+                        modifier = Modifier.fillMaxSize()
+                    )
+                } else {
+                    // Fallback when camera permission is denied
+                    Box(
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .background(
+                                Brush.verticalGradient(
+                                    colors = listOf(
+                                        Color(0xFF3B2A20),
+                                        Color(0xFF6E5646),
+                                        Color(0xFF4A372C)
+                                    )
                                 )
-                            )
-                        ),
-                    contentAlignment = Alignment.Center
-                ) {
-                    // Simulated Product Bag Illustration in Camera Viewfinder
-                    Column(
-                        horizontalAlignment = Alignment.CenterHorizontally,
-                        modifier = Modifier.padding(32.dp)
+                            ),
+                        contentAlignment = Alignment.Center
                     ) {
-                        Box(
-                            modifier = Modifier
-                                .size(200.dp, 240.dp)
-                                .clip(RoundedCornerShape(16.dp))
-                                .background(Color(0xFFFFF7F2))
-                                .border(2.dp, PrimaryCTA.copy(alpha = 0.6f), RoundedCornerShape(16.dp)),
-                            contentAlignment = Alignment.Center
+                        Column(
+                            horizontalAlignment = Alignment.CenterHorizontally,
+                            modifier = Modifier.padding(24.dp)
                         ) {
-                            Column(
-                                horizontalAlignment = Alignment.CenterHorizontally,
-                                modifier = Modifier.padding(12.dp)
+                            Text(text = "📷", fontSize = 48.sp)
+                            Spacer(modifier = Modifier.height(12.dp))
+                            Text(
+                                text = "Chưa cấp quyền truy cập Camera",
+                                fontSize = 15.sp,
+                                fontWeight = FontWeight.Bold,
+                                color = Color.White
+                            )
+                            Spacer(modifier = Modifier.height(6.dp))
+                            Box(
+                                modifier = Modifier
+                                    .clip(RoundedCornerShape(16.dp))
+                                    .background(PrimaryCTA)
+                                    .clickable { permissionLauncher.launch(Manifest.permission.CAMERA) }
+                                    .padding(horizontal = 16.dp, vertical = 8.dp)
                             ) {
                                 Text(
-                                    text = "ROYAL CANIN",
-                                    fontSize = 16.sp,
-                                    fontWeight = FontWeight.ExtraBold,
-                                    color = Color(0xFFD32F2F)
-                                )
-                                Text(
-                                    text = "Kitten",
-                                    fontSize = 13.sp,
+                                    text = "Cấp quyền Camera",
+                                    fontSize = 12.sp,
                                     fontWeight = FontWeight.Bold,
-                                    color = SecondaryText
-                                )
-                                Spacer(modifier = Modifier.height(10.dp))
-                                Text(text = "🐱", fontSize = 64.sp)
-                                Spacer(modifier = Modifier.height(6.dp))
-                                Text(
-                                    text = "85g",
-                                    fontSize = 11.sp,
-                                    color = MutedText
+                                    color = Color.White
                                 )
                             }
                         }
@@ -243,7 +368,6 @@ fun CameraScanScreen(
                     horizontalArrangement = Arrangement.SpaceBetween,
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-                    // Back inside camera
                     Box(
                         modifier = Modifier
                             .size(36.dp)
@@ -290,7 +414,8 @@ fun CameraScanScreen(
                             modifier = Modifier
                                 .size(36.dp)
                                 .clip(CircleShape)
-                                .background(Color.Black.copy(alpha = 0.4f)),
+                                .background(if (viewModel.isFlashOn) PrimaryCTA else Color.Black.copy(alpha = 0.4f))
+                                .clickable { viewModel.toggleFlash() },
                             contentAlignment = Alignment.Center
                         ) {
                             Icon(
@@ -305,7 +430,8 @@ fun CameraScanScreen(
                             modifier = Modifier
                                 .size(36.dp)
                                 .clip(CircleShape)
-                                .background(Color.Black.copy(alpha = 0.4f)),
+                                .background(Color.Black.copy(alpha = 0.4f))
+                                .clickable { viewModel.toggleCameraFacing() },
                             contentAlignment = Alignment.Center
                         ) {
                             Icon(
@@ -342,7 +468,7 @@ fun CameraScanScreen(
                             )
                     )
 
-                    // Paw Print Icon Badge in Center of Bounding Box
+                    // Paw Print Icon Badge
                     Box(
                         modifier = Modifier
                             .size(44.dp)
@@ -359,7 +485,7 @@ fun CameraScanScreen(
                         )
                     }
 
-                    // Product Match Result Pill attached at Bottom of Scanner Box
+                    // Live Status Tag at Bottom
                     Box(
                         modifier = Modifier
                             .align(Alignment.BottomCenter)
@@ -377,7 +503,7 @@ fun CameraScanScreen(
                             )
                             Spacer(modifier = Modifier.width(4.dp))
                             Text(
-                                text = "Royal Canin Kitten (400g)",
+                                text = "Sẵn sàng quét sản phẩm",
                                 fontSize = 12.sp,
                                 fontWeight = FontWeight.Bold,
                                 color = PrimaryText
@@ -390,7 +516,7 @@ fun CameraScanScreen(
                                     .padding(horizontal = 6.dp, vertical = 2.dp)
                             ) {
                                 Text(
-                                    text = "98% khớp",
+                                    text = "AI Ready",
                                     fontSize = 10.sp,
                                     fontWeight = FontWeight.Bold,
                                     color = SuccessText
@@ -438,7 +564,10 @@ fun CameraScanScreen(
                         modifier = Modifier
                             .clip(RoundedCornerShape(20.dp))
                             .background(if (isSelected) PrimaryCTA else SecondarySoft)
-                            .clickable { selectedCategoryIndex = index }
+                            .clickable {
+                                selectedCategoryIndex = index
+                                viewModel.selectedCategoryFilter = title
+                            }
                             .padding(horizontal = 16.dp, vertical = 10.dp)
                     ) {
                         Text(
@@ -464,7 +593,9 @@ fun CameraScanScreen(
                 // Gallery Option
                 Column(
                     horizontalAlignment = Alignment.CenterHorizontally,
-                    modifier = Modifier.clickable { }
+                    modifier = Modifier.clickable {
+                        galleryLauncher.launch("image/*")
+                    }
                 ) {
                     Box(
                         modifier = Modifier
@@ -496,7 +627,7 @@ fun CameraScanScreen(
                         .size(80.dp)
                         .clip(CircleShape)
                         .background(Color(0xFFFFE2DC))
-                        .clickable { onCapture() },
+                        .clickable { takePhotoAndSearch() },
                     contentAlignment = Alignment.Center
                 ) {
                     Box(
@@ -506,12 +637,19 @@ fun CameraScanScreen(
                             .background(PrimaryCTA),
                         contentAlignment = Alignment.Center
                     ) {
-                        Icon(
-                            painter = painterResource(id = R.drawable.ic_paw),
-                            contentDescription = "Chụp ảnh quét",
-                            tint = Color.White,
-                            modifier = Modifier.size(32.dp)
-                        )
+                        if (viewModel.isAnalyzing) {
+                            CircularProgressIndicator(
+                                color = Color.White,
+                                modifier = Modifier.size(28.dp)
+                            )
+                        } else {
+                            Icon(
+                                painter = painterResource(id = R.drawable.ic_paw),
+                                contentDescription = "Chụp ảnh quét",
+                                tint = Color.White,
+                                modifier = Modifier.size(32.dp)
+                            )
+                        }
                     }
                 }
 

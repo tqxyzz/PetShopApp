@@ -8,61 +8,87 @@ import org.json.JSONArray
 fun importProductsFromAssets(context: Context) {
     val db = FirebaseFirestore.getInstance()
 
-    // Helper generic import function robust against null values
-    fun importCollection(fileName: String, collectionName: String, idKey: String) {
-        try {
-            val jsonString = context.assets.open(fileName)
-                .bufferedReader()
-                .use { it.readText() }
-            val jsonArray = JSONArray(jsonString)
-            val batch = db.batch()
-            var count = 0
+    // 1. Import Products
+    try {
+        val jsonString = context.assets.open("products.json")
+            .bufferedReader()
+            .use { it.readText() }
 
-            for (i in 0 until jsonArray.length()) {
-                val item = jsonArray.getJSONObject(i)
-                val id = item.getString(idKey)
-                val map = hashMapOf<String, Any>()
+        val jsonArray = JSONArray(jsonString)
+        val batch = db.batch()
+        var count = 0
 
-                val keys = item.keys()
-                while (keys.hasNext()) {
-                    val key = keys.next()
-                    if (!item.isNull(key)) {
-                        map[key] = item.get(key)
-                    }
-                }
+        for (i in 0 until jsonArray.length()) {
+            val item = jsonArray.getJSONObject(i)
+            val id = item.getString("id")
 
-                val docRef = db.collection(collectionName).document(id)
-                batch.set(docRef, map)
-                count++
+            val productMap = hashMapOf(
+                "id" to id,
+                "brand" to item.getString("brand"),
+                "title" to item.getString("title"),
+                "currentPrice" to item.getString("currentPrice"),
+                "oldPrice" to item.getString("oldPrice"),
+                "discountPercent" to item.getString("discountPercent"),
+                "rating" to item.getDouble("rating"),
+                "soldCount" to item.getString("soldCount"),
+                "petType" to item.getString("petType"),
+                "imageUrl" to item.getString("imageUrl"),
+                "category" to item.optString("category", ""),
+                "categoryId" to item.optString("categoryId", ""),
+                "isFlashSale" to item.getBoolean("isFlashSale")
+            )
+
+            val docRef = db.collection("products").document(id)
+            batch.set(docRef, productMap)
+            count++
+        }
+
+        batch.commit()
+            .addOnSuccessListener {
+                Log.d("FirestoreImporter", "Đã import thành công $count sản phẩm!")
+            }
+            .addOnFailureListener { e ->
+                Log.e("FirestoreImporter", "Lỗi import sản phẩm", e)
             }
 
-            batch.commit()
-                .addOnSuccessListener {
-                    Log.d("FirestoreImporter", "Đã import thành công $count bản ghi vào collection '$collectionName'!")
-                }
-                .addOnFailureListener { e ->
-                    Log.e("FirestoreImporter", "Lỗi import collection '$collectionName': ${e.localizedMessage}", e)
-                }
-        } catch (e: Exception) {
-            Log.e("FirestoreImporter", "Lỗi đọc file $fileName: ${e.localizedMessage}", e)
-        }
+    } catch (e: Exception) {
+        Log.e("FirestoreImporter", "Lỗi đọc file products.json", e)
     }
 
-    // Import tất cả các bảng theo ERD
-    importCollection("categories.json", "categories", "id")
-    importCollection("brands.json", "brands", "ma_thuong_hieu")
-    importCollection("products.json", "products", "id")
-    importCollection("roles.json", "roles", "ma_vai_tro")
-    importCollection("accounts.json", "accounts", "ma_tai_khoan")
-    importCollection("variants.json", "product_variants", "ma_bien_the_san_pham")
-    importCollection("images.json", "product_images", "ma_anh_san_pham")
-    importCollection("addresses.json", "addresses", "ma_dia_chi")
-    importCollection("favorites.json", "favorites", "ma_yeu_thich")
-    importCollection("cart_items.json", "cart_items", "ma_chi_tiet_gio_hang")
-    importCollection("orders.json", "orders", "ma_don_hang")
-    importCollection("order_items.json", "order_items", "ma_chi_tiet_don_hang")
-    importCollection("promotions.json", "promotions", "ma_khuyen_mai")
-    importCollection("order_promotions.json", "order_promotions", "ma")
-    importCollection("reviews.json", "reviews", "ma_danh_gia")
-    importCollection("chats.json", "chats", "ma_phien_tro_chuyen")
+    // 2. Import Categories
+    try {
+        val catString = context.assets.open("categories.json")
+            .bufferedReader()
+            .use { it.readText() }
+
+        val catArray = JSONArray(catString)
+        val catBatch = db.batch()
+        var catCount = 0
+
+        for (i in 0 until catArray.length()) {
+            val item = catArray.getJSONObject(i)
+            val id = item.getString("id")
+
+            val catMap = hashMapOf(
+                "id" to id,
+                "title" to item.getString("title"),
+                "iconEmoji" to item.getString("iconEmoji")
+            )
+
+            val docRef = db.collection("categories").document(id)
+            catBatch.set(docRef, catMap)
+            catCount++
+        }
+
+        catBatch.commit()
+            .addOnSuccessListener {
+                Log.d("FirestoreImporter", "Đã import thành công $catCount danh mục!")
+            }
+            .addOnFailureListener { e ->
+                Log.e("FirestoreImporter", "Lỗi import danh mục", e)
+            }
+
+    } catch (e: Exception) {
+        Log.e("FirestoreImporter", "Lỗi đọc file categories.json", e)
+    }
 }
