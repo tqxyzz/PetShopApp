@@ -43,7 +43,9 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.petshop.R
+import com.example.petshop.data.model.Product
 import com.example.petshop.data.model.WishlistItem
+import com.example.petshop.data.model.sampleProducts
 import com.example.petshop.data.model.sampleWishlistItems
 import com.example.petshop.ui.theme.AdminMaroon
 import com.example.petshop.ui.theme.BorderDivider
@@ -58,7 +60,7 @@ import com.example.petshop.ui.theme.SecondarySurface
 import com.example.petshop.ui.theme.SecondaryText
 import com.example.petshop.ui.theme.SuccessBg
 import com.example.petshop.ui.theme.SuccessText
-import com.google.firebase.auth.FirebaseAuth
+import com.example.petshop.utils.UserAccountUtils
 import com.google.firebase.firestore.FirebaseFirestore
 
 @Composable
@@ -71,66 +73,93 @@ fun WishlistScreen(
     var selectedCategoryFilter by remember { mutableStateOf("🐾 Tất cả") }
     var isSelectAllChecked by remember { mutableStateOf(false) }
     var wishlistItems by remember { mutableStateOf<List<WishlistItem>>(sampleWishlistItems) }
+    var currentAccountId by remember { mutableStateOf("acc_002") }
 
     DisposableEffect(Unit) {
-        val currentUser = FirebaseAuth.getInstance().currentUser
-        if (currentUser != null) {
-            val listener = FirebaseFirestore.getInstance()
-                .collection("wishlists")
-                .whereEqualTo("userId", currentUser.uid)
-                .addSnapshotListener { snapshot, error ->
-                    if (error == null && snapshot != null && !snapshot.isEmpty) {
-                        val fetchedItems = snapshot.documents.mapNotNull { doc ->
-                            try {
-                                doc.toObject(WishlistItem::class.java)?.copy(id = doc.id)
-                            } catch (e: Exception) {
-                                null
-                            }
-                        }
-                        if (fetchedItems.isNotEmpty()) {
-                            wishlistItems = fetchedItems
+        UserAccountUtils.fetchCurrentAccountId { accId ->
+            currentAccountId = accId
+        }
+
+        val db = FirebaseFirestore.getInstance()
+        var allProducts = sampleProducts
+
+        db.collection("products").get().addOnSuccessListener { pSnapshot ->
+            if (pSnapshot != null && !pSnapshot.isEmpty) {
+                val fetchedProds = pSnapshot.documents.mapNotNull { doc ->
+                    doc.toObject(Product::class.java)?.copy(id = doc.id)
+                }
+                if (fetchedProds.isNotEmpty()) {
+                    allProducts = fetchedProds
+                }
+            }
+        }
+
+        val listener = db.collection("favorites")
+            .whereEqualTo("ma_tai_khoan", currentAccountId)
+            .addSnapshotListener { snapshot, error ->
+                if (error == null && snapshot != null && !snapshot.isEmpty) {
+                    val fetchedItems = snapshot.documents.mapNotNull { doc ->
+                        try {
+                            val favId = doc.getString("ma_yeu_thich") ?: doc.id
+                            val prodId = doc.getString("ma_san_pham") ?: ""
+                            val prod = allProducts.find { it.id == prodId || it.title.contains(prodId, ignoreCase = true) }
+
+                            WishlistItem(
+                                id = favId,
+                                userId = currentAccountId,
+                                title = prod?.title ?: "Sản phẩm yêu thích #$prodId",
+                                badge = prod?.badge ?: "Hot",
+                                badgeType = prod?.badgeColor ?: "orange",
+                                discount = prod?.discountPercent,
+                                rating = (prod?.rating ?: 5.0).toString(),
+                                reviewCount = prod?.soldCount ?: "100",
+                                price = prod?.currentPrice ?: "100.000đ",
+                                oldPrice = prod?.oldPrice
+                            )
+                        } catch (e: Exception) {
+                            null
                         }
                     }
+                    if (fetchedItems.isNotEmpty()) {
+                        wishlistItems = fetchedItems
+                    }
                 }
-            onDispose { listener.remove() }
-        } else {
-            onDispose { }
+            }
+
+        onDispose {
+            listener.remove()
         }
     }
 
     fun removeWishlistItem(item: WishlistItem) {
-        val currentUser = FirebaseAuth.getInstance().currentUser
-        if (currentUser != null && item.id.isNotBlank()) {
-            try {
+        try {
+            if (item.id.isNotBlank()) {
                 FirebaseFirestore.getInstance()
-                    .collection("wishlists")
+                    .collection("favorites")
                     .document(item.id)
                     .delete()
-            } catch (e: Exception) {
-                // Ignore exception safely
             }
+        } catch (e: Exception) {
+            // Ignore exception safely
         }
         wishlistItems = wishlistItems.filter { it.id != item.id }
     }
 
     fun clearAllWishlist() {
-        val currentUser = FirebaseAuth.getInstance().currentUser
-        if (currentUser != null) {
-            try {
-                val db = FirebaseFirestore.getInstance()
-                db.collection("wishlists")
-                    .whereEqualTo("userId", currentUser.uid)
-                    .get()
-                    .addOnSuccessListener { snapshot ->
-                        val batch = db.batch()
-                        snapshot.documents.forEach { doc ->
-                            batch.delete(doc.reference)
-                        }
-                        batch.commit()
+        try {
+            val db = FirebaseFirestore.getInstance()
+            db.collection("favorites")
+                .whereEqualTo("ma_tai_khoan", currentAccountId)
+                .get()
+                .addOnSuccessListener { snapshot ->
+                    val batch = db.batch()
+                    snapshot.documents.forEach { doc ->
+                        batch.delete(doc.reference)
                     }
-            } catch (e: Exception) {
-                // Ignore exception safely
-            }
+                    batch.commit()
+                }
+        } catch (e: Exception) {
+            // Ignore exception safely
         }
         wishlistItems = emptyList()
     }

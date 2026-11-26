@@ -64,6 +64,8 @@ import com.example.petshop.ui.theme.SecondarySurface
 import com.example.petshop.ui.theme.SecondaryText
 import com.example.petshop.ui.theme.SuccessBg
 import com.example.petshop.ui.theme.SuccessText
+import com.example.petshop.utils.UserAccountUtils
+import com.google.firebase.firestore.FirebaseFirestore
 import kotlinx.coroutines.launch
 import java.text.SimpleDateFormat
 import java.util.Date
@@ -79,9 +81,41 @@ fun AiChatScreen(
     val messages = remember { mutableStateListOf(*sampleChatMessages.toTypedArray()) }
     val coroutineScope = rememberCoroutineScope()
     var isBotLoading by remember { mutableStateOf(false) }
+    var currentAccountId by remember { mutableStateOf("acc_002") }
 
     LaunchedEffect(Unit) {
         GeminiAiService.fetchStoreProducts()
+
+        UserAccountUtils.fetchCurrentAccountId { accId ->
+            currentAccountId = accId
+            try {
+                FirebaseFirestore.getInstance().collection("chats")
+                    .whereEqualTo("ma_tai_khoan", accId)
+                    .get()
+                    .addOnSuccessListener { snapshot ->
+                        if (snapshot != null && !snapshot.isEmpty) {
+                            val historyMsgs = snapshot.documents.mapNotNull { doc ->
+                                val senderType = doc.getString("loai_nguoi_gui") ?: "Khách hàng"
+                                val content = doc.getString("noi_dung") ?: return@mapNotNull null
+                                val timeStr = doc.getString("ngay_tro_chuyen") ?: "10:14"
+
+                                ChatMessage(
+                                    id = doc.id,
+                                    sender = if (senderType == "Khách hàng") "user" else "bot",
+                                    text = content,
+                                    timestamp = timeStr
+                                )
+                            }
+                            if (historyMsgs.isNotEmpty()) {
+                                messages.clear()
+                                messages.addAll(historyMsgs)
+                            }
+                        }
+                    }
+            } catch (e: Exception) {
+                // Ignore safely
+            }
+        }
     }
 
     fun handleSend(queryText: String) {
@@ -89,6 +123,8 @@ fun AiChatScreen(
         if (cleanQuery.isBlank() || isBotLoading) return
 
         val currentTime = SimpleDateFormat("HH:mm", Locale.getDefault()).format(Date())
+        val currentDateStr = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(Date())
+
         messages.add(
             ChatMessage(
                 id = "msg_${System.currentTimeMillis()}",
@@ -97,6 +133,22 @@ fun AiChatScreen(
                 timestamp = currentTime
             )
         )
+
+        try {
+            val userChatMap = hashMapOf(
+                "ma_phien_tro_chuyen" to "session_${System.currentTimeMillis()}",
+                "ma_tai_khoan" to currentAccountId,
+                "loai_nguoi_gui" to "Khách hàng",
+                "noi_dung" to cleanQuery,
+                "ngay_tro_chuyen" to currentDateStr,
+                "trang_thai" to "Đang hoạt động",
+                "timestamp" to System.currentTimeMillis()
+            )
+            FirebaseFirestore.getInstance().collection("chats").add(userChatMap)
+        } catch (e: Exception) {
+            // Ignore safely
+        }
+
         inputText = ""
         isBotLoading = true
 
@@ -115,6 +167,21 @@ fun AiChatScreen(
             messages.removeAll { it.id == loadingId }
             messages.add(responseMsg)
             isBotLoading = false
+
+            try {
+                val botChatMap = hashMapOf(
+                    "ma_phien_tro_chuyen" to "session_${System.currentTimeMillis()}",
+                    "ma_tai_khoan" to currentAccountId,
+                    "loai_nguoi_gui" to "Trợ lý AI",
+                    "noi_dung" to responseMsg.text,
+                    "ngay_tro_chuyen" to currentDateStr,
+                    "trang_thai" to "Đang hoạt động",
+                    "timestamp" to System.currentTimeMillis()
+                )
+                FirebaseFirestore.getInstance().collection("chats").add(botChatMap)
+            } catch (e: Exception) {
+                // Ignore safely
+            }
         }
     }
 

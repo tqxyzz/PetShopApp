@@ -43,6 +43,7 @@ import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.petshop.R
+import com.example.petshop.data.model.DriverInfo
 import com.example.petshop.data.model.Order
 import com.example.petshop.data.model.OrderItem
 import com.example.petshop.data.model.OrderStatusType
@@ -67,7 +68,7 @@ import com.example.petshop.ui.theme.SuccessBg
 import com.example.petshop.ui.theme.SuccessText
 import com.example.petshop.ui.theme.WarningBg
 import com.example.petshop.ui.theme.WarningText
-import com.google.firebase.auth.FirebaseAuth
+import com.example.petshop.utils.UserAccountUtils
 import com.google.firebase.firestore.FirebaseFirestore
 
 @Composable
@@ -79,32 +80,71 @@ fun OrderListScreen(
     onBack: () -> Unit = {}
 ) {
     var searchQuery by remember { mutableStateOf("") }
-    var selectedFilterTab by remember { mutableStateOf("Tất cả (4)") }
+    var selectedFilterTab by remember { mutableStateOf("Tất cả") }
     var orderList by remember { mutableStateOf<List<Order>>(sampleOrders) }
+    var currentAccountId by remember { mutableStateOf("acc_002") }
 
     DisposableEffect(Unit) {
-        val currentUser = FirebaseAuth.getInstance().currentUser
-        if (currentUser != null) {
-            val listener = FirebaseFirestore.getInstance()
-                .collection("orders")
-                .whereEqualTo("userId", currentUser.uid)
-                .addSnapshotListener { snapshot, error ->
-                    if (error == null && snapshot != null && !snapshot.isEmpty) {
-                        val fetchedOrders = snapshot.documents.mapNotNull { doc ->
-                            try {
-                                doc.toObject(Order::class.java)?.copy(orderId = doc.id)
-                            } catch (e: Exception) {
-                                null
+        UserAccountUtils.fetchCurrentAccountId { accId ->
+            currentAccountId = accId
+        }
+
+        val db = FirebaseFirestore.getInstance()
+        val listener = db.collection("orders")
+            .whereEqualTo("ma_tai_khoan", currentAccountId)
+            .addSnapshotListener { snapshot, error ->
+                if (error == null && snapshot != null && !snapshot.isEmpty) {
+                    val fetchedOrders = snapshot.documents.mapNotNull { doc ->
+                        try {
+                            val orderId = doc.getString("ma_don_hang") ?: doc.id
+                            val statusRaw = doc.getString("trang_thai_don_hang") ?: "Đang giao hàng"
+                            val paymentTotal = doc.get("tong_tien_don_hang")?.toString() ?: "500.000đ"
+                            val driverName = doc.getString("ten_nguoi_giao_hang") ?: "Tài xế Nguyễn Văn An"
+                            val driverPhone = doc.getString("so_dien_thoai_nguoi_giao") ?: "0901234567"
+
+                            val (statusType, badgeStr) = when {
+                                statusRaw.contains("Chờ", true) -> OrderStatusType.PENDING_CONFIRM to "💬 Chờ xác nhận"
+                                statusRaw.contains("chuẩn bị", true) -> OrderStatusType.PENDING_CONFIRM to "📦 Đang chuẩn bị"
+                                statusRaw.contains("tới tay", true) || statusRaw.contains("đã nhận", true) -> OrderStatusType.DELIVERED to "🚚 Đã tới tay khách"
+                                statusRaw.contains("Hoàn tất", true) || statusRaw.contains("Thành công", true) -> OrderStatusType.COMPLETED to "✔ Hoàn tất"
+                                else -> OrderStatusType.EXPRESS_SHIPPING to "⚡ Hỏa tốc 2H"
                             }
-                        }
-                        if (fetchedOrders.isNotEmpty()) {
-                            orderList = fetchedOrders
+
+                            Order(
+                                orderId = orderId,
+                                userId = currentAccountId,
+                                badge = badgeStr,
+                                statusType = statusType,
+                                statusText = statusRaw,
+                                driverInfo = DriverInfo(
+                                    name = driverName,
+                                    distanceEta = "Đang cách nhà bạn 1.2 km (dự kiến 7 phút)",
+                                    phone = driverPhone
+                                ),
+                                items = listOf(
+                                    OrderItem(
+                                        id = "item_1",
+                                        title = "Hạt Royal Canin Kitten 2kg",
+                                        subtitle = "Cho mèo con dưới 12 tháng tuổi",
+                                        quantity = 1,
+                                        price = paymentTotal
+                                    )
+                                ),
+                                totalItemCount = 1,
+                                totalPayment = paymentTotal
+                            )
+                        } catch (e: Exception) {
+                            null
                         }
                     }
+                    if (fetchedOrders.isNotEmpty()) {
+                        orderList = fetchedOrders
+                    }
                 }
-            onDispose { listener.remove() }
-        } else {
-            onDispose { }
+            }
+
+        onDispose {
+            listener.remove()
         }
     }
 
@@ -114,12 +154,11 @@ fun OrderListScreen(
                     order.orderId.contains(searchQuery, ignoreCase = true) ||
                     order.items.any { it.title.contains(searchQuery, ignoreCase = true) }
 
-            val matchesFilter = when (selectedFilterTab) {
-                "Chờ xác nhận •" -> order.statusType == OrderStatusType.PENDING_CONFIRM
-                "Đang chuẩn bị" -> order.statusType == OrderStatusType.PENDING_CONFIRM
-                "Đang giao •" -> order.statusType == OrderStatusType.EXPRESS_SHIPPING
-                "Đã giao" -> order.statusType == OrderStatusType.COMPLETED || order.statusType == OrderStatusType.DELIVERED
-                "Đã hủy" -> false
+            val matchesFilter = when {
+                selectedFilterTab.contains("Chờ") -> order.statusType == OrderStatusType.PENDING_CONFIRM
+                selectedFilterTab.contains("chuẩn bị") -> order.statusType == OrderStatusType.PENDING_CONFIRM
+                selectedFilterTab.contains("giao") -> order.statusType == OrderStatusType.EXPRESS_SHIPPING || order.statusText.contains("giao", true)
+                selectedFilterTab.contains("Đã") -> order.statusType == OrderStatusType.COMPLETED || order.statusType == OrderStatusType.DELIVERED
                 else -> true
             }
 
