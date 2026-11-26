@@ -1,0 +1,29 @@
+[
+  {
+    "ma_bien_the_san_pham": "v_001",
+    "ma_san_pham": "prod_001",
+    "ten_bien_the_san_pham": "Túi 2kg - Vị gà",
+    "so_luong_hang": 150,
+    "ma_quan_li": "SKU_RC_IND_2K",
+    "gia": "345.000đ",
+    "don_vi_san_pham": "Túi"
+  },
+  {
+    "ma_bien_the_san_pham": "v_002",
+    "ma_san_pham": "prod_001",
+    "ten_bien_the_san_pham": "Túi 4kg - Vị gà",
+    "so_luong_hang": 80,
+    "ma_quan_li": "SKU_RC_IND_4K",
+    "gia": "640.000đ",
+    "don_vi_san_pham": "Túi"
+  },
+  {
+    "ma_bien_the_san_pham": "v_003",
+    "ma_san_pham": "prod_002",
+    "ten_bien_the_san_pham": "Gói 4 thanh x 14g",
+    "so_luong_hang": 300,
+    "ma_quan_li": "SKU_CIAO_4T",
+    "gia": "38.000đ",
+    "don_vi_san_pham": "Gói"
+  }
+]

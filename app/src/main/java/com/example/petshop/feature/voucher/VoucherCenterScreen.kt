@@ -79,6 +79,28 @@ fun VoucherCenterScreen(
     var myVouchersList by remember { mutableStateOf(sampleVoucherDetails) }
     val scrollState = rememberScrollState()
 
+    androidx.compose.runtime.LaunchedEffect(Unit) {
+        val db = com.google.firebase.firestore.FirebaseFirestore.getInstance()
+        db.collection("promotions")
+            .get()
+            .addOnSuccessListener { result ->
+                val list = result.documents.mapNotNull { doc ->
+                    val v = doc.toObject(VoucherDetail::class.java)?.copy(id = doc.id)
+                    if (v != null) {
+                        v.copy(
+                            title = v.tenKhuyenMai.ifEmpty { v.title },
+                            subtitle = v.dieuKienKhuyenMai.ifEmpty { v.subtitle },
+                            hsdText = "HSD: ${v.ngayKetThuc}".ifEmpty { v.hsdText },
+                            footerLeftText = v.chuongTrinhKhuyenMai.ifEmpty { v.footerLeftText }
+                        )
+                    } else null
+                }
+                if (list.isNotEmpty()) {
+                    myVouchersList = list
+                }
+            }
+    }
+
     Scaffold(
         bottomBar = {
             // Sticky Bottom Wallet Bar

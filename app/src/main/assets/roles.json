@@ -1,0 +1,5 @@
+[
+  { "ma_vai_tro": "r1", "ten_vai_tro": "Khách hàng" },
+  { "ma_vai_tro": "r2", "ten_vai_tro": "Nhân viên bán hàng" },
+  { "ma_vai_tro": "r3", "ten_vai_tro": "Quản trị viên (Admin)" }
+]

@@ -134,7 +134,7 @@ class MainActivity : ComponentActivity() {
                                         currentScreen = AppScreen.FlashSale
                                     },
                                     onNavigateToVoucher = {
-                                        currentScreen = AppScreen.Voucher
+                                        checkAuthAndProceed { currentScreen = AppScreen.Voucher }
                                     },
                                     onNavigateToCategory = {
                                         currentScreen = AppScreen.Category
@@ -144,6 +144,12 @@ class MainActivity : ComponentActivity() {
                                     },
                                     onNavigateToCart = {
                                         checkAuthAndProceed { currentScreen = AppScreen.Cart }
+                                    },
+                                    onNavigateToProfile = {
+                                        checkAuthAndProceed { /* Handle profile navigation if available */ }
+                                    },
+                                    onNavigateToAssistant = {
+                                        checkAuthAndProceed { /* Handle assistant navigation if available */ }
                                     },
                                     onNavigateToProductDetail = { prod ->
                                         selectedProduct = prod
