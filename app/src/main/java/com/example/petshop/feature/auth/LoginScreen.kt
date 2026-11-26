@@ -231,13 +231,13 @@ fun LoginScreen(
                         } else {
                             isLoading = true
                             FirebaseAuth.getInstance().signInWithEmailAndPassword(accountInput.trim(), passwordInput)
-                                .addOnCompleteListener { task ->
+                                .addOnSuccessListener {
                                     isLoading = false
-                                    if (task.isSuccessful) {
-                                        onNavigateToHome()
-                                    } else {
-                                        errorMessage = task.exception?.localizedMessage ?: "Đăng nhập thất bại"
-                                    }
+                                    onNavigateToHome()
+                                }
+                                .addOnFailureListener { e ->
+                                    isLoading = false
+                                    errorMessage = e.localizedMessage ?: "Đăng nhập thất bại. Vui lòng kiểm tra lại mạng hoặc tài khoản."
                                 }
                         }
                     },

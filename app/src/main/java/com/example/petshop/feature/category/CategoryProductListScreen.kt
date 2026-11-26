@@ -25,6 +25,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -39,6 +40,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.petshop.R
 import com.example.petshop.data.model.Product
+import com.google.firebase.firestore.FirebaseFirestore
 import com.example.petshop.ui.components.ProductCard
 import com.example.petshop.ui.theme.AdminMaroon
 import com.example.petshop.ui.theme.BorderDivider
@@ -147,6 +149,31 @@ fun CategoryProductListScreen(
     var selectedSort by remember { mutableStateOf("Phổ biến") }
     var selectedSubFilter by remember { mutableStateOf("Tất cả") }
     val scrollState = rememberScrollState()
+
+    var productList by remember { mutableStateOf<List<Product>>(emptyList()) }
+
+    LaunchedEffect(categoryTitle) {
+        val db = FirebaseFirestore.getInstance()
+        db.collection("products")
+            .get()
+            .addOnSuccessListener { result ->
+                val list = result.documents.mapNotNull { doc ->
+                    doc.toObject(Product::class.java)?.copy(id = doc.id)
+                }
+                val filtered = list.filter { p ->
+                    p.category.equals(categoryTitle, ignoreCase = true) ||
+                    categoryTitle.contains(p.category, ignoreCase = true) ||
+                    p.title.contains(categoryTitle, ignoreCase = true) ||
+                    p.brand.contains(categoryTitle, ignoreCase = true) ||
+                    (categoryTitle.contains("Thức ăn", true) && (p.title.contains("Hạt", true) || p.title.contains("Pate", true))) ||
+                    (categoryTitle.contains("Phụ kiện", true) && p.title.contains("chơi", true)) ||
+                    (categoryTitle.contains("Cát", true) && p.title.contains("Cát", true))
+                }
+                productList = if (filtered.isNotEmpty()) filtered else list
+            }
+    }
+
+    val displayProducts = if (productList.isNotEmpty()) productList else sampleCategoryProducts
 
     Column(
         modifier = modifier
@@ -467,7 +494,7 @@ fun CategoryProductListScreen(
 
         // 2-Column Product Grid
         Column(modifier = Modifier.padding(horizontal = 20.dp)) {
-            val chunkedProducts = sampleCategoryProducts.chunked(2)
+            val chunkedProducts = displayProducts.chunked(2)
             chunkedProducts.forEach { rowProducts ->
                 Row(
                     modifier = Modifier

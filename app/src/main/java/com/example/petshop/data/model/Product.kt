@@ -15,6 +15,8 @@ data class Product(
     val discountPercent: String? = null,
     val petType: String = "cat", // "cat" or "dog"
     val imageUrl: String = "",
+    val category: String = "",
+    val categoryId: String = "",
     @get:PropertyName("isFlashSale")
     val isFlashSale: Boolean = false
 )

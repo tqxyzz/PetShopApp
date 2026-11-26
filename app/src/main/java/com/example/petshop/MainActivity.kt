@@ -31,7 +31,10 @@ import com.example.petshop.feature.home.HomeScreen
 import com.example.petshop.feature.onboarding.OnboardingScreen
 import com.example.petshop.feature.order.OrderListScreen
 import com.example.petshop.feature.product.ProductDetailScreen
+import com.example.petshop.feature.cart.CartViewModel
+import com.example.petshop.feature.checkout.CheckoutViewModel
 import com.example.petshop.feature.search.CameraScanScreen
+import com.google.firebase.auth.FirebaseAuth
 import com.example.petshop.feature.search.ImageSearchResultScreen
 import com.example.petshop.feature.search.SearchHistoryScreen
 import com.example.petshop.feature.splash.SplashScreen
@@ -74,6 +77,18 @@ class MainActivity : ComponentActivity() {
                 var currentScreen by remember { mutableStateOf<AppScreen>(AppScreen.Splash) }
                 var showForgotPasswordDialog by remember { mutableStateOf(false) }
                 var activeCategoryTitle by remember { mutableStateOf("Đồ Dùng & Thức Ăn Cho Chó") }
+                var activeSearchQuery by remember { mutableStateOf("hạt cho chó") }
+                var selectedProduct by remember { mutableStateOf<com.example.petshop.data.model.Product?>(null) }
+                val cartViewModel: CartViewModel = androidx.lifecycle.viewmodel.compose.viewModel()
+                val checkoutViewModel: CheckoutViewModel = androidx.lifecycle.viewmodel.compose.viewModel()
+
+                val checkAuthAndProceed: (() -> Unit) -> Unit = { action ->
+                    if (FirebaseAuth.getInstance().currentUser == null) {
+                        currentScreen = AppScreen.Login
+                    } else {
+                        action()
+                    }
+                }
 
                 Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
                     Box(modifier = Modifier.padding(innerPadding)) {
@@ -88,7 +103,7 @@ class MainActivity : ComponentActivity() {
                             is AppScreen.Onboarding -> {
                                 OnboardingScreen(
                                     onFinishOnboarding = {
-                                        currentScreen = AppScreen.Login
+                                        currentScreen = AppScreen.Home
                                     },
                                     onNavigateToLogin = {
                                         currentScreen = AppScreen.Login
@@ -145,9 +160,10 @@ class MainActivity : ComponentActivity() {
                                         currentScreen = AppScreen.Wishlist
                                     },
                                     onNavigateToCart = {
-                                        currentScreen = AppScreen.Cart
+                                        checkAuthAndProceed { currentScreen = AppScreen.Cart }
                                     },
-                                    onNavigateToProductDetail = {
+                                    onNavigateToProductDetail = { prod ->
+                                        selectedProduct = prod
                                         currentScreen = AppScreen.ProductDetail
                                     },
                                     onNavigateToSearchHistory = {
@@ -155,6 +171,10 @@ class MainActivity : ComponentActivity() {
                                     },
                                     onNavigateToCameraScan = {
                                         currentScreen = AppScreen.CameraScan
+                                    },
+                                    onNavigateToCategoryProductList = { categoryTitle ->
+                                        activeCategoryTitle = categoryTitle
+                                        currentScreen = AppScreen.CategoryProductList
                                     }
                                 )
                             }
@@ -194,7 +214,7 @@ class MainActivity : ComponentActivity() {
                                 CategoryProductListScreen(
                                     categoryTitle = activeCategoryTitle,
                                     onBack = {
-                                        currentScreen = AppScreen.Category
+                                        currentScreen = AppScreen.Home
                                     }
                                 )
                             }
@@ -250,7 +270,16 @@ class MainActivity : ComponentActivity() {
                                         currentScreen = AppScreen.CameraScan
                                     },
                                     onSearchSubmit = { query ->
+                                        activeSearchQuery = if (query.isNotBlank()) query else "hạt cho chó"
                                         currentScreen = AppScreen.ImageSearchResult
+                                    },
+                                    onProductClick = { prod ->
+                                        selectedProduct = prod
+                                        currentScreen = AppScreen.ProductDetail
+                                    },
+                                    onAddToCart = { prod ->
+                                        cartViewModel.addToCart(prod)
+                                        currentScreen = AppScreen.Cart
                                     }
                                 )
                             }
@@ -260,50 +289,71 @@ class MainActivity : ComponentActivity() {
                                         currentScreen = AppScreen.SearchHistory
                                     },
                                     onClose = {
-                                        currentScreen = AppScreen.Home
+                                        currentScreen = AppScreen.SearchHistory
                                     },
                                     onNavigateToHistory = {
                                         currentScreen = AppScreen.SearchHistory
                                     },
                                     onCapture = {
+                                        activeSearchQuery = "hạt cho chó"
                                         currentScreen = AppScreen.ImageSearchResult
                                     }
                                 )
                             }
                             is AppScreen.ImageSearchResult -> {
                                 ImageSearchResultScreen(
+                                    searchQuery = activeSearchQuery,
                                     onBack = {
-                                        currentScreen = AppScreen.CameraScan
+                                        currentScreen = AppScreen.SearchHistory
                                     },
                                     onClose = {
-                                        currentScreen = AppScreen.Home
+                                        currentScreen = AppScreen.SearchHistory
                                     },
                                     onNavigateToCameraScan = {
                                         currentScreen = AppScreen.CameraScan
                                     },
-                                    onAddToCart = {
-                                        currentScreen = AppScreen.Cart
+                                    onNavigateToCart = {
+                                        checkAuthAndProceed { currentScreen = AppScreen.Cart }
                                     },
-                                    onBuyNow = {
+                                    onAddToCart = { prod ->
+                                        checkAuthAndProceed {
+                                            cartViewModel.addToCart(prod)
+                                            currentScreen = AppScreen.Cart
+                                        }
+                                    },
+                                    onProductClick = { prod ->
+                                        selectedProduct = prod
                                         currentScreen = AppScreen.ProductDetail
                                     }
                                 )
                             }
                             is AppScreen.ProductDetail -> {
                                 ProductDetailScreen(
+                                    product = selectedProduct,
                                     onBack = {
                                         currentScreen = AppScreen.Home
                                     },
                                     onNavigateToCart = {
-                                        currentScreen = AppScreen.Cart
+                                        checkAuthAndProceed { currentScreen = AppScreen.Cart }
+                                    },
+                                    onAddToCart = { prod ->
+                                        checkAuthAndProceed {
+                                            cartViewModel.addToCart(prod)
+                                        }
                                     },
                                     onBuyNow = {
-                                        currentScreen = AppScreen.ShippingAddress
+                                        checkAuthAndProceed {
+                                            if (selectedProduct != null) {
+                                                checkoutViewModel.setDirectBuyNow(selectedProduct!!)
+                                            }
+                                            currentScreen = AppScreen.ShippingAddress
+                                        }
                                     }
                                 )
                             }
                             is AppScreen.Cart -> {
                                 CartScreen(
+                                    viewModel = cartViewModel,
                                     onBack = {
                                         currentScreen = AppScreen.Home
                                     },
@@ -311,6 +361,7 @@ class MainActivity : ComponentActivity() {
                                         currentScreen = AppScreen.VoucherPetPoints
                                     },
                                     onNavigateToCheckout = {
+                                        checkoutViewModel.setCartCheckout(cartViewModel.cartItems)
                                         currentScreen = AppScreen.ShippingAddress
                                     }
                                 )
@@ -327,8 +378,9 @@ class MainActivity : ComponentActivity() {
                             }
                             is AppScreen.ShippingAddress -> {
                                 ShippingAddressScreen(
+                                    viewModel = checkoutViewModel,
                                     onBack = {
-                                        currentScreen = AppScreen.Cart
+                                        currentScreen = AppScreen.Home
                                     },
                                     onContinueToPayment = {
                                         currentScreen = AppScreen.PaymentMethod
@@ -337,6 +389,7 @@ class MainActivity : ComponentActivity() {
                             }
                             is AppScreen.PaymentMethod -> {
                                 PaymentMethodScreen(
+                                    viewModel = checkoutViewModel,
                                     onBack = {
                                         currentScreen = AppScreen.ShippingAddress
                                     },
@@ -347,6 +400,7 @@ class MainActivity : ComponentActivity() {
                             }
                             is AppScreen.OrderSuccess -> {
                                 OrderSuccessScreen(
+                                    viewModel = checkoutViewModel,
                                     onBack = {
                                         currentScreen = AppScreen.Home
                                     },
