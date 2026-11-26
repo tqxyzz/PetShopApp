@@ -26,7 +26,7 @@ import com.example.petshop.R
 import com.example.petshop.ui.theme.*
 
 @Composable
-fun PetPointsWalletScreen(
+fun ViPetPointsScreen(
     onBack: () -> Unit,
     onNavigateToHistory: () -> Unit,
     modifier: Modifier = Modifier
@@ -95,8 +95,7 @@ fun PetPointsWalletScreen(
                         .size(36.dp)
                         .clip(CircleShape)
                         .background(CardSurface)
-                        .border(1.dp, BorderDivider, CircleShape)
-                        .clickable { onNavigateToHistory() },
+                        .border(1.dp, BorderDivider, CircleShape),
                     contentAlignment = Alignment.Center
                 ) {
                     Icon(
@@ -118,7 +117,7 @@ fun PetPointsWalletScreen(
                 .padding(horizontal = 20.dp)
                 .shadow(6.dp, RoundedCornerShape(24.dp), ambientColor = BorderDivider, spotColor = BorderDivider)
                 .clip(RoundedCornerShape(24.dp))
-                .background(Color(0xFFE26A54)) // Warm Orange-Red Wallet Card
+                .background(Color(0xFFE26A54))
                 .padding(20.dp)
         ) {
             Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
@@ -197,7 +196,6 @@ fun PetPointsWalletScreen(
                     )
                 }
 
-                // Expiry info box
                 Box(
                     modifier = Modifier
                         .fillMaxWidth()
@@ -224,7 +222,6 @@ fun PetPointsWalletScreen(
                     }
                 }
 
-                // Action buttons inside wallet card
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.spacedBy(10.dp)
@@ -345,7 +342,6 @@ fun PetPointsWalletScreen(
                     }
                 }
 
-                // 7 Days Circles Row
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.SpaceBetween
@@ -379,7 +375,7 @@ fun PetPointsWalletScreen(
                                         }
                                     )
                                     .border(
-                                        1.5.dp,
+                                        2.dp,
                                         when {
                                             isChecked -> SuccessText
                                             isToday -> PrimaryCTA
@@ -414,7 +410,6 @@ fun PetPointsWalletScreen(
                     }
                 }
 
-                // Check-in Button
                 Button(
                     onClick = { /* Check-in */ },
                     modifier = Modifier
@@ -446,7 +441,7 @@ fun PetPointsWalletScreen(
 
         Spacer(modifier = Modifier.height(16.dp))
 
-        // Mission Section ("Nhiệm vụ kiếm thêm điểm")
+        // Mission Section
         Column(
             modifier = Modifier
                 .fillMaxWidth()
@@ -544,7 +539,7 @@ fun PetPointsWalletScreen(
 
         Spacer(modifier = Modifier.height(16.dp))
 
-        // Rewards Store Section ("Kho đổi quà & Voucher")
+        // Rewards Store Section
         Column(
             modifier = Modifier
                 .fillMaxWidth()
@@ -583,7 +578,6 @@ fun PetPointsWalletScreen(
                 )
             }
 
-            // Tabs for rewards
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.spacedBy(8.dp)
@@ -614,12 +608,10 @@ fun PetPointsWalletScreen(
                 }
             }
 
-            // Rewards Grid (2 columns)
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.spacedBy(12.dp)
             ) {
-                // Item 1
                 Column(
                     modifier = Modifier
                         .weight(1f)
@@ -671,9 +663,7 @@ fun PetPointsWalletScreen(
                         verticalAlignment = Alignment.CenterVertically,
                         horizontalArrangement = Arrangement.SpaceBetween
                     ) {
-                        Row(verticalAlignment = Alignment.CenterVertically) {
-                            Text(text = "🪙 500", fontSize = 12.sp, fontWeight = FontWeight.Bold, color = PrimaryCTA)
-                        }
+                        Text(text = "🪙 500", fontSize = 12.sp, fontWeight = FontWeight.Bold, color = PrimaryCTA)
 
                         Box(
                             modifier = Modifier
@@ -688,7 +678,6 @@ fun PetPointsWalletScreen(
                     }
                 }
 
-                // Item 2
                 Column(
                     modifier = Modifier
                         .weight(1f)
@@ -740,9 +729,7 @@ fun PetPointsWalletScreen(
                         verticalAlignment = Alignment.CenterVertically,
                         horizontalArrangement = Arrangement.SpaceBetween
                     ) {
-                        Row(verticalAlignment = Alignment.CenterVertically) {
-                            Text(text = "🪙 350", fontSize = 12.sp, fontWeight = FontWeight.Bold, color = PrimaryCTA)
-                        }
+                        Text(text = "🪙 350", fontSize = 12.sp, fontWeight = FontWeight.Bold, color = PrimaryCTA)
 
                         Box(
                             modifier = Modifier

@@ -27,7 +27,7 @@ import com.example.petshop.ui.components.PetShopTextField
 import com.example.petshop.ui.theme.*
 
 @Composable
-fun EditProfileScreen(
+fun ChinhSuaHoSoScreen(
     onBack: () -> Unit,
     onSaveSuccess: () -> Unit,
     modifier: Modifier = Modifier
@@ -104,7 +104,6 @@ fun EditProfileScreen(
             Box(
                 modifier = Modifier.size(100.dp)
             ) {
-                // Placeholder Avatar (Using person icon or colored box if no image asset)
                 Box(
                     modifier = Modifier
                         .fillMaxSize()
@@ -163,7 +162,6 @@ fun EditProfileScreen(
                 .padding(20.dp),
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
-            // Section Title
             Row(
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.spacedBy(8.dp)
@@ -219,7 +217,6 @@ fun EditProfileScreen(
                         )
                     }
                 }
-                // Verified Badge indicator
                 Spacer(modifier = Modifier.height(4.dp))
                 Row(
                     modifier = Modifier.fillMaxWidth(),
@@ -370,7 +367,6 @@ fun EditProfileScreen(
                 .padding(20.dp),
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
-            // Section Title
             Row(
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.spacedBy(8.dp)
@@ -461,7 +457,6 @@ fun EditProfileScreen(
                     )
                 }
 
-                // Link Button
                 Box(
                     modifier = Modifier
                         .clip(RoundedCornerShape(12.dp))

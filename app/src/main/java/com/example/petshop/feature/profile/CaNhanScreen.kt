@@ -26,7 +26,7 @@ import com.example.petshop.ui.components.PetShopBottomNavBar
 import com.example.petshop.ui.theme.*
 
 @Composable
-fun ProfileScreen(
+fun CaNhanScreen(
     onNavigateToEditProfile: () -> Unit,
     onNavigateToAddressBook: () -> Unit,
     onNavigateToChangePassword: () -> Unit,
@@ -780,7 +780,7 @@ fun ProfileScreen(
                                 } else if (index == 1) {
                                     onNavigateToChangePassword()
                                 } else if (index == 3) {
-                                    onNavigateToNotificationSettings()
+                                    onNavigateToLanguageAppearance()
                                 } else if (index == 4) {
                                     onNavigateToHelpCenter()
                                 }
@@ -850,7 +850,7 @@ fun ProfileScreen(
                     horizontalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
                     Icon(
-                        painter = painterResource(id = R.drawable.ic_truck), // Or logout icon
+                        painter = painterResource(id = R.drawable.ic_truck),
                         contentDescription = "Logout",
                         tint = DangerText,
                         modifier = Modifier.size(18.dp)

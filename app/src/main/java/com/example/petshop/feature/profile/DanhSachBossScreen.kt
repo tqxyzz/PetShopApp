@@ -25,7 +25,7 @@ import com.example.petshop.R
 import com.example.petshop.ui.theme.*
 
 @Composable
-fun PetListScreen(
+fun DanhSachBossScreen(
     onBack: () -> Unit,
     onNavigateToAddPet: () -> Unit,
     onNavigateToPetDetail: () -> Unit,
@@ -198,7 +198,6 @@ fun PetListScreen(
                 .padding(18.dp)
         ) {
             Column(verticalArrangement = Arrangement.spacedBy(14.dp)) {
-                // Card Header: Badge + Options
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     verticalAlignment = Alignment.CenterVertically,
@@ -236,7 +235,6 @@ fun PetListScreen(
                     )
                 }
 
-                // Pet Info Row
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     verticalAlignment = Alignment.CenterVertically
@@ -299,7 +297,6 @@ fun PetListScreen(
                     }
                 }
 
-                // Sterilization Tag
                 Row(
                     verticalAlignment = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.spacedBy(4.dp)
@@ -318,7 +315,6 @@ fun PetListScreen(
                     )
                 }
 
-                // Sub-card 1: Khẩu vị & Tính cách
                 Box(
                     modifier = Modifier
                         .fillMaxWidth()
@@ -354,7 +350,6 @@ fun PetListScreen(
                     }
                 }
 
-                // Sub-card 2: Sinh nhật & Voucher
                 Box(
                     modifier = Modifier
                         .fillMaxWidth()
@@ -388,7 +383,6 @@ fun PetListScreen(
                     }
                 }
 
-                // Bottom Buttons Row
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.spacedBy(10.dp),
@@ -455,7 +449,6 @@ fun PetListScreen(
                 .padding(18.dp)
         ) {
             Column(verticalArrangement = Arrangement.spacedBy(14.dp)) {
-                // Card Header: Badge + Set priority button
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     verticalAlignment = Alignment.CenterVertically,
@@ -475,7 +468,6 @@ fun PetListScreen(
                         )
                     }
 
-                    // Set as priority action
                     Box(
                         modifier = Modifier
                             .clip(RoundedCornerShape(10.dp))
@@ -502,7 +494,6 @@ fun PetListScreen(
                     }
                 }
 
-                // Pet Info Row
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     verticalAlignment = Alignment.CenterVertically
@@ -565,7 +556,6 @@ fun PetListScreen(
                     }
                 }
 
-                // Sub-card 1: Khẩu vị yêu thích
                 Box(
                     modifier = Modifier
                         .fillMaxWidth()
@@ -601,7 +591,6 @@ fun PetListScreen(
                     }
                 }
 
-                // Sub-card 2: Sinh nhật
                 Box(
                     modifier = Modifier
                         .fillMaxWidth()
@@ -640,7 +629,6 @@ fun PetListScreen(
                     }
                 }
 
-                // Bottom Buttons Row
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.spacedBy(10.dp),
@@ -748,7 +736,7 @@ fun PetListScreen(
 
         Spacer(modifier = Modifier.height(16.dp))
 
-        // Subscription Combo Card ("Gói Tiết Kiệm Nhà Sen")
+        // Subscription Combo Card
         Box(
             modifier = Modifier
                 .fillMaxWidth()
@@ -851,7 +839,6 @@ fun PetListScreen(
 
         Spacer(modifier = Modifier.height(20.dp))
 
-        // Footer
         Text(
             text = "♡ Được yêu thương và phục vụ bởi Avocado PetShop",
             fontSize = 12.sp,

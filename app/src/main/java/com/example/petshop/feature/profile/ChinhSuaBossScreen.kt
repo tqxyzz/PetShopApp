@@ -28,7 +28,7 @@ import com.example.petshop.ui.components.PetShopTextField
 import com.example.petshop.ui.theme.*
 
 @Composable
-fun EditPetProfileScreen(
+fun ChinhSuaBossScreen(
     onBack: () -> Unit,
     onSaveSuccess: () -> Unit,
     modifier: Modifier = Modifier
@@ -121,7 +121,6 @@ fun EditPetProfileScreen(
                     )
                 }
 
-                // Camera Badge
                 Box(
                     modifier = Modifier
                         .size(32.dp)
@@ -142,7 +141,6 @@ fun EditPetProfileScreen(
 
             Spacer(modifier = Modifier.height(8.dp))
 
-            // Boss ID Badge
             Box(
                 modifier = Modifier
                     .clip(RoundedCornerShape(10.dp))
@@ -177,7 +175,7 @@ fun EditPetProfileScreen(
 
         Spacer(modifier = Modifier.height(8.dp))
 
-        // 1. Basic Info Card Container
+        // Basic Info Card Container
         Column(
             modifier = Modifier
                 .fillMaxWidth()
@@ -223,7 +221,6 @@ fun EditPetProfileScreen(
                 trailingLabel = "🐰"
             )
 
-            // Breed Selector Item
             Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
                 Text(
                     text = "Giống loài",
@@ -267,7 +264,7 @@ fun EditPetProfileScreen(
 
         Spacer(modifier = Modifier.height(16.dp))
 
-        // 2. Body & Physical Condition Card Container
+        // Body & Physical Condition Card Container
         Column(
             modifier = Modifier
                 .fillMaxWidth()
@@ -327,7 +324,6 @@ fun EditPetProfileScreen(
                 }
             }
 
-            // Weight Field & Delta Badge
             Column {
                 Row(
                     modifier = Modifier.fillMaxWidth(),
@@ -363,7 +359,6 @@ fun EditPetProfileScreen(
                 }
             }
 
-            // Helper notice box
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -390,7 +385,6 @@ fun EditPetProfileScreen(
                 }
             }
 
-            // Development Stage Card
             Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
                 Text(
                     text = "Giai đoạn phát triển",
@@ -454,7 +448,6 @@ fun EditPetProfileScreen(
                 }
             }
 
-            // Activity Level Options
             Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
                 Text(
                     text = "Mức độ vận động hàng ngày",
@@ -466,7 +459,6 @@ fun EditPetProfileScreen(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.spacedBy(10.dp)
                 ) {
-                    // Option 1: Lười vận động
                     Box(
                         modifier = Modifier
                             .weight(1f)
@@ -502,7 +494,6 @@ fun EditPetProfileScreen(
                         }
                     }
 
-                    // Option 2: Năng động
                     Box(
                         modifier = Modifier
                             .weight(1f)
@@ -557,7 +548,7 @@ fun EditPetProfileScreen(
 
         Spacer(modifier = Modifier.height(16.dp))
 
-        // 3. Favorite Taste & Notes Card Container
+        // Favorite Taste & Notes
         Column(
             modifier = Modifier
                 .fillMaxWidth()
@@ -606,87 +597,32 @@ fun EditPetProfileScreen(
                 color = SecondaryText
             )
 
-            // Chips row 1 (selected)
             Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.spacedBy(8.dp)
-                ) {
-                    // Chip 1
-                    Box(
-                        modifier = Modifier
-                            .clip(RoundedCornerShape(12.dp))
-                            .background(PrimaryCTA)
-                            .padding(horizontal = 12.dp, vertical = 6.dp)
-                    ) {
-                        Row(verticalAlignment = Alignment.CenterVertically) {
-                            Text(text = "🐾 Pate cá hồi Na Uy  ✕", fontSize = 12.sp, fontWeight = FontWeight.Bold, color = OnPrimaryText)
-                        }
+                Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    Box(modifier = Modifier.clip(RoundedCornerShape(12.dp)).background(PrimaryCTA).padding(horizontal = 12.dp, vertical = 6.dp)) {
+                        Text(text = "🐾 Pate cá hồi Na Uy  ✕", fontSize = 12.sp, fontWeight = FontWeight.Bold, color = OnPrimaryText)
                     }
                 }
-
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.spacedBy(8.dp)
-                ) {
-                    // Chip 2
-                    Box(
-                        modifier = Modifier
-                            .clip(RoundedCornerShape(12.dp))
-                            .background(PrimaryCTA)
-                            .padding(horizontal = 12.dp, vertical = 6.dp)
-                    ) {
-                        Row(verticalAlignment = Alignment.CenterVertically) {
-                            Text(text = "🐾 Hạt không ngũ cốc (Grain-free)  ✕", fontSize = 12.sp, fontWeight = FontWeight.Bold, color = OnPrimaryText)
-                        }
+                Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    Box(modifier = Modifier.clip(RoundedCornerShape(12.dp)).background(PrimaryCTA).padding(horizontal = 12.dp, vertical = 6.dp)) {
+                        Text(text = "🐾 Hạt không ngũ cốc (Grain-free)  ✕", fontSize = 12.sp, fontWeight = FontWeight.Bold, color = OnPrimaryText)
                     }
                 }
-
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.spacedBy(8.dp)
-                ) {
-                    // Chip 3
-                    Box(
-                        modifier = Modifier
-                            .clip(RoundedCornerShape(12.dp))
-                            .background(PrimaryCTA)
-                            .padding(horizontal = 12.dp, vertical = 6.dp)
-                    ) {
-                        Row(verticalAlignment = Alignment.CenterVertically) {
-                            Text(text = "🐾 Ức gà xé sấy thăng hoa  ✕", fontSize = 12.sp, fontWeight = FontWeight.Bold, color = OnPrimaryText)
-                        }
+                Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    Box(modifier = Modifier.clip(RoundedCornerShape(12.dp)).background(PrimaryCTA).padding(horizontal = 12.dp, vertical = 6.dp)) {
+                        Text(text = "🐾 Ức gà xé sấy thăng hoa  ✕", fontSize = 12.sp, fontWeight = FontWeight.Bold, color = OnPrimaryText)
                     }
                 }
-
-                // Addable chips
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.spacedBy(8.dp)
-                ) {
-                    Box(
-                        modifier = Modifier
-                            .clip(RoundedCornerShape(12.dp))
-                            .background(SecondarySurface)
-                            .border(1.dp, BorderDivider, RoundedCornerShape(12.dp))
-                            .padding(horizontal = 12.dp, vertical = 6.dp)
-                    ) {
+                Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    Box(modifier = Modifier.clip(RoundedCornerShape(12.dp)).background(SecondarySurface).border(1.dp, BorderDivider, RoundedCornerShape(12.dp)).padding(horizontal = 12.dp, vertical = 6.dp)) {
                         Text(text = "+ Súp thưởng vị cá ngừ", fontSize = 12.sp, fontWeight = FontWeight.Bold, color = SecondaryText)
                     }
-
-                    Box(
-                        modifier = Modifier
-                            .clip(RoundedCornerShape(12.dp))
-                            .background(SecondarySurface)
-                            .border(1.dp, BorderDivider, RoundedCornerShape(12.dp))
-                            .padding(horizontal = 12.dp, vertical = 6.dp)
-                    ) {
+                    Box(modifier = Modifier.clip(RoundedCornerShape(12.dp)).background(SecondarySurface).border(1.dp, BorderDivider, RoundedCornerShape(12.dp)).padding(horizontal = 12.dp, vertical = 6.dp)) {
                         Text(text = "+ Cỏ mèo bạc hà (Catnip)", fontSize = 12.sp, fontWeight = FontWeight.Bold, color = SecondaryText)
                     }
                 }
             }
 
-            // Notes
             Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
                 Text(
                     text = "Ghi chú thói quen đặc biệt của Boss",
@@ -710,7 +646,7 @@ fun EditPetProfileScreen(
 
         Spacer(modifier = Modifier.height(16.dp))
 
-        // 4. Priority Settings Card Container
+        // Priority Settings
         Column(
             modifier = Modifier
                 .fillMaxWidth()
@@ -740,7 +676,6 @@ fun EditPetProfileScreen(
                 )
             }
 
-            // Setting 1: Priority Boss
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 verticalAlignment = Alignment.CenterVertically
@@ -772,7 +707,6 @@ fun EditPetProfileScreen(
                 )
             }
 
-            // Setting 2: Birthday Notification
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 verticalAlignment = Alignment.CenterVertically

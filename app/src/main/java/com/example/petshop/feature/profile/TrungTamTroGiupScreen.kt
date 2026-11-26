@@ -26,12 +26,12 @@ import com.example.petshop.ui.components.PetShopTextField
 import com.example.petshop.ui.theme.*
 
 @Composable
-fun HelpCenterScreen(
+fun TrungTamTroGiupScreen(
     onBack: () -> Unit,
     modifier: Modifier = Modifier
 ) {
     var searchQuery by remember { mutableStateOf("") }
-    var expandedFaq by remember { mutableStateOf(0) } // Index 0 expanded initially
+    var expandedFaq by remember { mutableStateOf(0) }
 
     Column(
         modifier = modifier
@@ -129,7 +129,6 @@ fun HelpCenterScreen(
                     color = SecondaryText
                 )
 
-                // Search Bar
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
@@ -182,7 +181,7 @@ fun HelpCenterScreen(
 
         Spacer(modifier = Modifier.height(16.dp))
 
-        // Direct Support Channels ("Kênh hỗ trợ trực tiếp")
+        // Direct Support Channels
         Column(
             modifier = Modifier
                 .fillMaxWidth()
@@ -221,12 +220,10 @@ fun HelpCenterScreen(
                 }
             }
 
-            // 2x2 Grid of support channels
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.spacedBy(12.dp)
             ) {
-                // Channel 1: Chat
                 Column(
                     modifier = Modifier
                         .weight(1f)
@@ -300,7 +297,6 @@ fun HelpCenterScreen(
                     }
                 }
 
-                // Channel 2: Hotline
                 Column(
                     modifier = Modifier
                         .weight(1f)
@@ -380,7 +376,6 @@ fun HelpCenterScreen(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.spacedBy(12.dp)
             ) {
-                // Channel 3: Ticket / Request
                 Column(
                     modifier = Modifier
                         .weight(1f)
@@ -441,7 +436,6 @@ fun HelpCenterScreen(
                     }
                 }
 
-                // Channel 4: Community
                 Column(
                     modifier = Modifier
                         .weight(1f)
@@ -506,7 +500,7 @@ fun HelpCenterScreen(
 
         Spacer(modifier = Modifier.height(16.dp))
 
-        // Popular Topics ("Chủ đề trợ giúp phổ biến")
+        // Popular Topics
         Column(
             modifier = Modifier
                 .fillMaxWidth()
@@ -595,7 +589,6 @@ fun HelpCenterScreen(
 
         Spacer(modifier = Modifier.height(16.dp))
 
-        // Guarantee Badge Banner
         Box(
             modifier = Modifier
                 .fillMaxWidth()
@@ -635,7 +628,7 @@ fun HelpCenterScreen(
 
         Spacer(modifier = Modifier.height(16.dp))
 
-        // FAQ Section ("Câu hỏi thường gặp nhất")
+        // FAQ Section
         Column(
             modifier = Modifier
                 .fillMaxWidth()
@@ -751,7 +744,6 @@ fun HelpCenterScreen(
 
         Spacer(modifier = Modifier.height(16.dp))
 
-        // Footer CTA Box
         Box(
             modifier = Modifier
                 .fillMaxWidth()

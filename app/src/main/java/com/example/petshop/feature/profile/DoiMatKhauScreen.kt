@@ -28,7 +28,7 @@ import com.example.petshop.ui.components.PetShopTextField
 import com.example.petshop.ui.theme.*
 
 @Composable
-fun ChangePasswordScreen(
+fun DoiMatKhauScreen(
     onBack: () -> Unit,
     onPasswordUpdated: () -> Unit,
     modifier: Modifier = Modifier
@@ -345,7 +345,7 @@ fun ChangePasswordScreen(
                     contentAlignment = Alignment.Center
                 ) {
                     Icon(
-                        painter = painterResource(id = R.drawable.ic_truck), // Or logout icon
+                        painter = painterResource(id = R.drawable.ic_truck),
                         contentDescription = null,
                         tint = PrimaryCTA,
                         modifier = Modifier.size(18.dp)

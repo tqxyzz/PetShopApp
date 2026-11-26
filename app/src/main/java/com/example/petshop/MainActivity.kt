@@ -36,6 +36,22 @@ import com.example.petshop.feature.search.CameraScanScreen
 import com.google.firebase.auth.FirebaseAuth
 import com.example.petshop.feature.search.ImageSearchResultScreen
 import com.example.petshop.feature.search.SearchHistoryScreen
+import com.example.petshop.feature.profile.CaNhanScreen
+import com.example.petshop.feature.profile.ChinhSuaHoSoScreen
+import com.example.petshop.feature.profile.SoDiaChiScreen
+import com.example.petshop.feature.profile.DoiMatKhauScreen
+import com.example.petshop.feature.profile.ChiTietBossScreen
+import com.example.petshop.feature.profile.ChinhSuaBossScreen
+import com.example.petshop.feature.profile.DanhSachBossScreen
+import com.example.petshop.feature.profile.ThemBossScreen
+import com.example.petshop.feature.profile.HangThanhVienScreen
+import com.example.petshop.feature.profile.ViPetPointsScreen
+import com.example.petshop.feature.profile.LichSuPetPointsScreen
+import com.example.petshop.feature.profile.TrungTamTroGiupScreen
+import com.example.petshop.feature.profile.CaiDatThongBaoScreen
+import com.example.petshop.feature.profile.NgonNguGiaoDienScreen
+import com.example.petshop.feature.profile.BaoTriScreen
+import com.example.petshop.feature.profile.NgoaiTuyenScreen
 import com.example.petshop.ui.theme.PetShopTheme
 
 sealed class AppScreen {
@@ -58,6 +74,22 @@ sealed class AppScreen {
     object ShippingAddress : AppScreen()
     object PaymentMethod : AppScreen()
     object OrderSuccess : AppScreen()
+    object CaNhan : AppScreen()
+    object ChinhSuaHoSo : AppScreen()
+    object SoDiaChi : AppScreen()
+    object DoiMatKhau : AppScreen()
+    object ChiTietBoss : AppScreen()
+    object ChinhSuaBoss : AppScreen()
+    object DanhSachBoss : AppScreen()
+    object ThemBoss : AppScreen()
+    object HangThanhVien : AppScreen()
+    object ViPetPoints : AppScreen()
+    object LichSuPetPoints : AppScreen()
+    object TrungTamTroGiup : AppScreen()
+    object CaiDatThongBao : AppScreen()
+    object NgonNguGiaoDien : AppScreen()
+    object BaoTri : AppScreen()
+    object NgoaiTuyen : AppScreen()
 }
 
 class MainActivity : ComponentActivity() {
@@ -149,15 +181,8 @@ class MainActivity : ComponentActivity() {
                                         selectedProduct = prod
                                         currentScreen = AppScreen.ProductDetail
                                     },
-                                    onNavigateToSearchHistory = {
-                                        currentScreen = AppScreen.SearchHistory
-                                    },
-                                    onNavigateToCameraScan = {
-                                        currentScreen = AppScreen.CameraScan
-                                    },
-                                    onNavigateToCategoryProductList = { categoryTitle ->
-                                        activeCategoryTitle = categoryTitle
-                                        currentScreen = AppScreen.CategoryProductList
+                                    onNavigateToProfile = {
+                                        currentScreen = AppScreen.CaNhan
                                     }
                                 )
                             }
@@ -197,157 +222,256 @@ class MainActivity : ComponentActivity() {
                                 CategoryProductListScreen(
                                     categoryTitle = activeCategoryTitle,
                                     onBack = {
-                                        currentScreen = AppScreen.Home
+                                        currentScreen = AppScreen.Category
                                     }
                                 )
                             }
                             is AppScreen.SearchHistory -> {
                                 SearchHistoryScreen(
-                                    onBack = {
-                                        currentScreen = AppScreen.Home
-                                    },
-                                    onNavigateToCameraScan = {
-                                        currentScreen = AppScreen.CameraScan
-                                    },
-                                    onSearchSubmit = { query ->
-                                        activeSearchQuery = if (query.isNotBlank()) query else "hạt cho chó"
-                                        currentScreen = AppScreen.ImageSearchResult
-                                    },
-                                    onProductClick = { prod ->
-                                        selectedProduct = prod
-                                        currentScreen = AppScreen.ProductDetail
-                                    },
-                                    onAddToCart = { prod ->
-                                        cartViewModel.addToCart(prod)
-                                        currentScreen = AppScreen.Cart
-                                    }
+                                    onBack = { currentScreen = AppScreen.Home },
+                                    onNavigateToCameraScan = { currentScreen = AppScreen.CameraScan }
                                 )
                             }
                             is AppScreen.CameraScan -> {
                                 CameraScanScreen(
-                                    onBack = {
-                                        currentScreen = AppScreen.SearchHistory
-                                    },
-                                    onClose = {
-                                        currentScreen = AppScreen.SearchHistory
-                                    },
-                                    onNavigateToHistory = {
-                                        currentScreen = AppScreen.SearchHistory
-                                    },
-                                    onCapture = {
-                                        activeSearchQuery = "hạt cho chó"
-                                        currentScreen = AppScreen.ImageSearchResult
-                                    }
+                                    onBack = { currentScreen = AppScreen.SearchHistory }
                                 )
                             }
                             is AppScreen.ImageSearchResult -> {
                                 ImageSearchResultScreen(
                                     searchQuery = activeSearchQuery,
-                                    onBack = {
-                                        currentScreen = AppScreen.SearchHistory
-                                    },
-                                    onClose = {
-                                        currentScreen = AppScreen.SearchHistory
-                                    },
-                                    onNavigateToCameraScan = {
-                                        currentScreen = AppScreen.CameraScan
-                                    },
-                                    onNavigateToCart = {
-                                        checkAuthAndProceed { currentScreen = AppScreen.Cart }
-                                    },
-                                    onAddToCart = { prod ->
-                                        checkAuthAndProceed {
-                                            cartViewModel.addToCart(prod)
-                                            currentScreen = AppScreen.Cart
-                                        }
-                                    },
-                                    onProductClick = { prod ->
-                                        selectedProduct = prod
-                                        currentScreen = AppScreen.ProductDetail
-                                    }
+                                    onBack = { currentScreen = AppScreen.SearchHistory }
                                 )
                             }
                             is AppScreen.ProductDetail -> {
-                                ProductDetailScreen(
-                                    product = selectedProduct,
-                                    onBack = {
-                                        currentScreen = AppScreen.Home
-                                    },
-                                    onNavigateToCart = {
-                                        checkAuthAndProceed { currentScreen = AppScreen.Cart }
-                                    },
-                                    onAddToCart = { prod ->
-                                        checkAuthAndProceed {
-                                            cartViewModel.addToCart(prod)
-                                        }
-                                    },
-                                    onBuyNow = {
-                                        checkAuthAndProceed {
-                                            if (selectedProduct != null) {
-                                                checkoutViewModel.setDirectBuyNow(selectedProduct!!)
-                                            }
-                                            currentScreen = AppScreen.ShippingAddress
-                                        }
-                                    }
-                                )
+                                if (selectedProduct != null) {
+                                    ProductDetailScreen(
+                                        product = selectedProduct!!,
+                                        onBack = { currentScreen = AppScreen.Home },
+                                        onAddToCart = { cartViewModel.addToCart(selectedProduct!!) },
+                                        onBuyNow = { currentScreen = AppScreen.Cart }
+                                    )
+                                } else {
+                                    HomeScreen(
+                                        onNavigateToFlashSale = { currentScreen = AppScreen.FlashSale },
+                                        onNavigateToVoucher = { currentScreen = AppScreen.Voucher },
+                                        onNavigateToCategory = { currentScreen = AppScreen.Category },
+                                        onNavigateToBrand = { currentScreen = AppScreen.Brand },
+                                        onNavigateToCart = { currentScreen = AppScreen.Cart },
+                                        onNavigateToProductDetail = { p ->
+                                            selectedProduct = p
+                                            currentScreen = AppScreen.ProductDetail
+                                        },
+                                        onNavigateToProfile = { currentScreen = AppScreen.CaNhan }
+                                    )
+                                }
                             }
                             is AppScreen.Cart -> {
                                 CartScreen(
-                                    viewModel = cartViewModel,
-                                    onBack = {
-                                        currentScreen = AppScreen.Home
-                                    },
-                                    onNavigateToVoucherSelect = {
-                                        currentScreen = AppScreen.VoucherPetPoints
-                                    },
-                                    onNavigateToCheckout = {
-                                        checkoutViewModel.setCartCheckout(cartViewModel.cartItems)
-                                        currentScreen = AppScreen.ShippingAddress
-                                    }
+                                    onBack = { currentScreen = AppScreen.Home },
+                                    onNavigateToVoucherSelect = { currentScreen = AppScreen.VoucherPetPoints },
+                                    onNavigateToCheckout = { currentScreen = AppScreen.ShippingAddress }
                                 )
                             }
                             is AppScreen.VoucherPetPoints -> {
                                 VoucherPetPointsScreen(
-                                    onBack = {
-                                        currentScreen = AppScreen.Cart
-                                    },
-                                    onConfirm = {
-                                        currentScreen = AppScreen.Cart
-                                    }
+                                    onBack = { currentScreen = AppScreen.Cart }
                                 )
                             }
                             is AppScreen.ShippingAddress -> {
                                 ShippingAddressScreen(
-                                    viewModel = checkoutViewModel,
-                                    onBack = {
-                                        currentScreen = AppScreen.Home
-                                    },
-                                    onContinueToPayment = {
-                                        currentScreen = AppScreen.PaymentMethod
-                                    }
+                                    onBack = { currentScreen = AppScreen.Cart },
+                                    onContinueToPayment = { currentScreen = AppScreen.PaymentMethod }
                                 )
                             }
                             is AppScreen.PaymentMethod -> {
                                 PaymentMethodScreen(
-                                    viewModel = checkoutViewModel,
-                                    onBack = {
-                                        currentScreen = AppScreen.ShippingAddress
-                                    },
-                                    onPlaceOrder = {
-                                        currentScreen = AppScreen.OrderSuccess
-                                    }
+                                    onBack = { currentScreen = AppScreen.ShippingAddress },
+                                    onPlaceOrder = { currentScreen = AppScreen.OrderSuccess }
                                 )
                             }
                             is AppScreen.OrderSuccess -> {
                                 OrderSuccessScreen(
-                                    viewModel = checkoutViewModel,
-                                    onBack = {
-                                        currentScreen = AppScreen.Home
+                                    onNavigateToHome = { currentScreen = AppScreen.Home }
+                                )
+                            }
+                            is AppScreen.CaNhan -> {
+                                CaNhanScreen(
+                                    onNavigateToEditProfile = {
+                                        currentScreen = AppScreen.ChinhSuaHoSo
+                                    },
+                                    onNavigateToAddressBook = {
+                                        currentScreen = AppScreen.SoDiaChi
+                                    },
+                                    onNavigateToChangePassword = {
+                                        currentScreen = AppScreen.DoiMatKhau
+                                    },
+                                    onNavigateToPetDetail = {
+                                        currentScreen = AppScreen.ChiTietBoss
+                                    },
+                                    onNavigateToPetList = {
+                                        currentScreen = AppScreen.DanhSachBoss
+                                    },
+                                    onNavigateToMembership = {
+                                        currentScreen = AppScreen.HangThanhVien
+                                    },
+                                    onNavigateToPetPoints = {
+                                        currentScreen = AppScreen.ViPetPoints
+                                    },
+                                    onNavigateToHelpCenter = {
+                                        currentScreen = AppScreen.TrungTamTroGiup
+                                    },
+                                    onNavigateToNotificationSettings = {
+                                        currentScreen = AppScreen.CaiDatThongBao
+                                    },
+                                    onNavigateToLanguageAppearance = {
+                                        currentScreen = AppScreen.NgonNguGiaoDien
                                     },
                                     onNavigateToHome = {
                                         currentScreen = AppScreen.Home
                                     },
-                                    onTrackOrder = {
+                                    onNavigateToCategory = {
+                                        currentScreen = AppScreen.Category
+                                    },
+                                    onNavigateToAssistant = {
+                                        // Assistant
+                                    },
+                                    onLogout = {
+                                        currentScreen = AppScreen.Login
+                                    }
+                                )
+                            }
+                            is AppScreen.ChinhSuaHoSo -> {
+                                ChinhSuaHoSoScreen(
+                                    onBack = {
+                                        currentScreen = AppScreen.CaNhan
+                                    },
+                                    onSaveSuccess = {
+                                        currentScreen = AppScreen.CaNhan
+                                    }
+                                )
+                            }
+                            is AppScreen.SoDiaChi -> {
+                                SoDiaChiScreen(
+                                    onBack = {
+                                        currentScreen = AppScreen.CaNhan
+                                    }
+                                )
+                            }
+                            is AppScreen.DoiMatKhau -> {
+                                DoiMatKhauScreen(
+                                    onBack = {
+                                        currentScreen = AppScreen.CaNhan
+                                    },
+                                    onPasswordUpdated = {
+                                        currentScreen = AppScreen.CaNhan
+                                    }
+                                )
+                            }
+                            is AppScreen.ChinhSuaBoss -> {
+                                ChinhSuaBossScreen(
+                                    onBack = {
+                                        currentScreen = AppScreen.ChiTietBoss
+                                    },
+                                    onSaveSuccess = {
+                                        currentScreen = AppScreen.ChiTietBoss
+                                    }
+                                )
+                            }
+                            is AppScreen.ChiTietBoss -> {
+                                ChiTietBossScreen(
+                                    onBack = {
+                                        currentScreen = AppScreen.DanhSachBoss
+                                    },
+                                    onNavigateToEdit = {
+                                        currentScreen = AppScreen.ChinhSuaBoss
+                                    }
+                                )
+                            }
+                            is AppScreen.DanhSachBoss -> {
+                                DanhSachBossScreen(
+                                    onBack = {
+                                        currentScreen = AppScreen.CaNhan
+                                    },
+                                    onNavigateToAddPet = {
+                                        currentScreen = AppScreen.ThemBoss
+                                    },
+                                    onNavigateToPetDetail = {
+                                        currentScreen = AppScreen.ChiTietBoss
+                                    }
+                                )
+                            }
+                            is AppScreen.ThemBoss -> {
+                                ThemBossScreen(
+                                    onBack = {
+                                        currentScreen = AppScreen.DanhSachBoss
+                                    },
+                                    onPetAdded = {
+                                        currentScreen = AppScreen.DanhSachBoss
+                                    }
+                                )
+                            }
+                            is AppScreen.HangThanhVien -> {
+                                HangThanhVienScreen(
+                                    onBack = {
+                                        currentScreen = AppScreen.CaNhan
+                                    }
+                                )
+                            }
+                            is AppScreen.ViPetPoints -> {
+                                ViPetPointsScreen(
+                                    onBack = {
+                                        currentScreen = AppScreen.CaNhan
+                                    },
+                                    onNavigateToHistory = {
+                                        currentScreen = AppScreen.LichSuPetPoints
+                                    }
+                                )
+                            }
+                            is AppScreen.LichSuPetPoints -> {
+                                LichSuPetPointsScreen(
+                                    onBack = {
+                                        currentScreen = AppScreen.ViPetPoints
+                                    }
+                                )
+                            }
+                            is AppScreen.CaiDatThongBao -> {
+                                CaiDatThongBaoScreen(
+                                    onBack = {
+                                        currentScreen = AppScreen.CaNhan
+                                    }
+                                )
+                            }
+                            is AppScreen.NgonNguGiaoDien -> {
+                                NgonNguGiaoDienScreen(
+                                    onBack = {
+                                        currentScreen = AppScreen.CaNhan
+                                    },
+                                    onSaveSuccess = {
+                                        currentScreen = AppScreen.CaNhan
+                                    }
+                                )
+                            }
+                            is AppScreen.TrungTamTroGiup -> {
+                                TrungTamTroGiupScreen(
+                                    onBack = {
+                                        currentScreen = AppScreen.CaNhan
+                                    }
+                                )
+                            }
+                            is AppScreen.BaoTri -> {
+                                BaoTriScreen(
+                                    onRetry = {
+                                        currentScreen = AppScreen.CaNhan
+                                    }
+                                )
+                            }
+                            is AppScreen.NgoaiTuyen -> {
+                                NgoaiTuyenScreen(
+                                    onRetry = {
+                                        currentScreen = AppScreen.Home
+                                    },
+                                    onViewOfflineCart = {
                                         currentScreen = AppScreen.Home
                                     }
                                 )
@@ -358,7 +482,7 @@ class MainActivity : ComponentActivity() {
                             ForgotPasswordDialog(
                                 onDismiss = { showForgotPasswordDialog = false },
                                 onSubmit = { email ->
-                                    // Password recovery flow
+                                    // Password recovery
                                 }
                             )
                         }

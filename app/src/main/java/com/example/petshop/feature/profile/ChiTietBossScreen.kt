@@ -25,7 +25,7 @@ import com.example.petshop.R
 import com.example.petshop.ui.theme.*
 
 @Composable
-fun PetProfileDetailScreen(
+fun ChiTietBossScreen(
     onBack: () -> Unit,
     onNavigateToEdit: () -> Unit,
     modifier: Modifier = Modifier
@@ -100,7 +100,6 @@ fun PetProfileDetailScreen(
                 .padding(18.dp)
         ) {
             Column(verticalArrangement = Arrangement.spacedBy(14.dp)) {
-                // Card Top Header
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     verticalAlignment = Alignment.CenterVertically,
@@ -132,7 +131,6 @@ fun PetProfileDetailScreen(
                     )
                 }
 
-                // Pet Info Row
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     verticalAlignment = Alignment.CenterVertically
@@ -213,7 +211,6 @@ fun PetProfileDetailScreen(
                     }
                 }
 
-                // Stats Row Container
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
@@ -244,7 +241,6 @@ fun PetProfileDetailScreen(
                     }
                 }
 
-                // Card Footer Tags
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.SpaceBetween,
@@ -291,7 +287,7 @@ fun PetProfileDetailScreen(
 
         Spacer(modifier = Modifier.height(14.dp))
 
-        // Action Buttons Row (Edit & Share Pet ID)
+        // Action Buttons Row
         Row(
             modifier = Modifier
                 .fillMaxWidth()
@@ -355,7 +351,7 @@ fun PetProfileDetailScreen(
 
         Spacer(modifier = Modifier.height(14.dp))
 
-        // Priority Boss Banner Notification
+        // Priority Boss Banner
         Box(
             modifier = Modifier
                 .fillMaxWidth()
@@ -399,7 +395,7 @@ fun PetProfileDetailScreen(
 
         Spacer(modifier = Modifier.height(16.dp))
 
-        // Nutrition Plan Section Container
+        // Nutrition Plan Section
         Column(
             modifier = Modifier
                 .fillMaxWidth()
@@ -449,7 +445,7 @@ fun PetProfileDetailScreen(
                 }
             }
 
-            // Nutrition Item 1: Dry food
+            // Nutrition item 1
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -500,7 +496,6 @@ fun PetProfileDetailScreen(
                         lineHeight = 15.sp
                     )
                     Spacer(modifier = Modifier.height(8.dp))
-                    // Progress bar
                     Box(
                         modifier = Modifier
                             .fillMaxWidth()
@@ -529,7 +524,7 @@ fun PetProfileDetailScreen(
                 }
             }
 
-            // Nutrition Item 2: Water
+            // Nutrition item 2
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -581,7 +576,7 @@ fun PetProfileDetailScreen(
                 }
             }
 
-            // Nutrition Item 3: Energy output
+            // Nutrition item 3
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -643,7 +638,7 @@ fun PetProfileDetailScreen(
 
         Spacer(modifier = Modifier.height(16.dp))
 
-        // Pet Preferences Section Container
+        // Pet Preferences Section
         Column(
             modifier = Modifier
                 .fillMaxWidth()
@@ -664,9 +659,7 @@ fun PetProfileDetailScreen(
                         .width(4.dp)
                         .height(16.dp)
                         .background(PrimaryCTA, RoundedCornerShape(2.dp))
-                ) {
-                    // Accent bar
-                }
+                )
                 Text(
                     text = "Sở thích của bé Miu",
                     fontSize = 16.sp,
@@ -675,35 +668,16 @@ fun PetProfileDetailScreen(
                 )
             }
 
-            // Taste preferences
             Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
-                Text(
-                    text = "🍽 Khẩu vị mê mẩn",
-                    fontSize = 13.sp,
-                    fontWeight = FontWeight.Bold,
-                    color = SecondaryText
-                )
+                Text(text = "🍽 Khẩu vị mê mẩn", fontSize = 13.sp, fontWeight = FontWeight.Bold, color = SecondaryText)
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
-                    Box(
-                        modifier = Modifier
-                            .clip(RoundedCornerShape(12.dp))
-                            .background(SecondarySurface)
-                            .border(1.dp, BorderDivider, RoundedCornerShape(12.dp))
-                            .padding(horizontal = 10.dp, vertical = 6.dp)
-                    ) {
+                    Box(modifier = Modifier.clip(RoundedCornerShape(12.dp)).background(SecondarySurface).border(1.dp, BorderDivider, RoundedCornerShape(12.dp)).padding(horizontal = 10.dp, vertical = 6.dp)) {
                         Text(text = "♥ Pate cá hồi Monge", fontSize = 11.sp, fontWeight = FontWeight.Bold, color = SecondaryText)
                     }
-
-                    Box(
-                        modifier = Modifier
-                            .clip(RoundedCornerShape(12.dp))
-                            .background(SecondarySurface)
-                            .border(1.dp, BorderDivider, RoundedCornerShape(12.dp))
-                            .padding(horizontal = 10.dp, vertical = 6.dp)
-                    ) {
+                    Box(modifier = Modifier.clip(RoundedCornerShape(12.dp)).background(SecondarySurface).border(1.dp, BorderDivider, RoundedCornerShape(12.dp)).padding(horizontal = 10.dp, vertical = 6.dp)) {
                         Text(text = "♥ Hạt Orijen Kitten gà", fontSize = 11.sp, fontWeight = FontWeight.Bold, color = SecondaryText)
                     }
                 }
@@ -711,47 +685,22 @@ fun PetProfileDetailScreen(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
-                    Box(
-                        modifier = Modifier
-                            .clip(RoundedCornerShape(12.dp))
-                            .background(SecondarySurface)
-                            .border(1.dp, BorderDivider, RoundedCornerShape(12.dp))
-                            .padding(horizontal = 10.dp, vertical = 6.dp)
-                    ) {
+                    Box(modifier = Modifier.clip(RoundedCornerShape(12.dp)).background(SecondarySurface).border(1.dp, BorderDivider, RoundedCornerShape(12.dp)).padding(horizontal = 10.dp, vertical = 6.dp)) {
                         Text(text = "♥ Súp thưởng Ciao nắp vặn", fontSize = 11.sp, fontWeight = FontWeight.Bold, color = SecondaryText)
                     }
                 }
             }
 
-            // Toy preferences
             Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
-                Text(
-                    text = "🧸 Đồ chơi khoái khẩu",
-                    fontSize = 13.sp,
-                    fontWeight = FontWeight.Bold,
-                    color = SecondaryText
-                )
+                Text(text = "🧸 Đồ chơi khoái khẩu", fontSize = 13.sp, fontWeight = FontWeight.Bold, color = SecondaryText)
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
-                    Box(
-                        modifier = Modifier
-                            .clip(RoundedCornerShape(12.dp))
-                            .background(SecondarySurface)
-                            .border(1.dp, BorderDivider, RoundedCornerShape(12.dp))
-                            .padding(horizontal = 10.dp, vertical = 6.dp)
-                    ) {
+                    Box(modifier = Modifier.clip(RoundedCornerShape(12.dp)).background(SecondarySurface).border(1.dp, BorderDivider, RoundedCornerShape(12.dp)).padding(horizontal = 10.dp, vertical = 6.dp)) {
                         Text(text = "⚽ Cần câu lông vũ tự nhiên", fontSize = 11.sp, fontWeight = FontWeight.Bold, color = SecondaryText)
                     }
-
-                    Box(
-                        modifier = Modifier
-                            .clip(RoundedCornerShape(12.dp))
-                            .background(SecondarySurface)
-                            .border(1.dp, BorderDivider, RoundedCornerShape(12.dp))
-                            .padding(horizontal = 10.dp, vertical = 6.dp)
-                    ) {
+                    Box(modifier = Modifier.clip(RoundedCornerShape(12.dp)).background(SecondarySurface).border(1.dp, BorderDivider, RoundedCornerShape(12.dp)).padding(horizontal = 10.dp, vertical = 6.dp)) {
                         Text(text = "⚽ Chuột bông cỏ catnip", fontSize = 11.sp, fontWeight = FontWeight.Bold, color = SecondaryText)
                     }
                 }
@@ -759,314 +708,10 @@ fun PetProfileDetailScreen(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
-                    Box(
-                        modifier = Modifier
-                            .clip(RoundedCornerShape(12.dp))
-                            .background(SecondarySurface)
-                            .border(1.dp, BorderDivider, RoundedCornerShape(12.dp))
-                            .padding(horizontal = 10.dp, vertical = 6.dp)
-                    ) {
+                    Box(modifier = Modifier.clip(RoundedCornerShape(12.dp)).background(SecondarySurface).border(1.dp, BorderDivider, RoundedCornerShape(12.dp)).padding(horizontal = 10.dp, vertical = 6.dp)) {
                         Text(text = "⚽ Trụ cào móng dây thừng", fontSize = 11.sp, fontWeight = FontWeight.Bold, color = SecondaryText)
                     }
                 }
-            }
-        }
-
-        Spacer(modifier = Modifier.height(16.dp))
-
-        // Recommendations Section ("Gợi ý riêng cho bé Miu")
-        Column(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(horizontal = 20.dp)
-                .shadow(4.dp, RoundedCornerShape(24.dp), ambientColor = BorderDivider, spotColor = BorderDivider)
-                .clip(RoundedCornerShape(24.dp))
-                .background(CardSurface)
-                .border(1.dp, BorderDivider, RoundedCornerShape(24.dp))
-                .padding(20.dp),
-            verticalArrangement = Arrangement.spacedBy(16.dp)
-        ) {
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.SpaceBetween
-            ) {
-                Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(8.dp)
-                ) {
-                    Box(
-                        modifier = Modifier
-                            .width(4.dp)
-                            .height(16.dp)
-                            .background(PrimaryCTA, RoundedCornerShape(2.dp))
-                    )
-                    Column {
-                        Text(
-                            text = "Gợi ý riêng cho bé Miu",
-                            fontSize = 16.sp,
-                            fontWeight = FontWeight.Bold,
-                            color = PrimaryText
-                        )
-                        Text(
-                            text = "Phù hợp mèo Anh lông ngắn 5 tháng tuổi",
-                            fontSize = 11.sp,
-                            color = MutedText
-                        )
-                    }
-                }
-
-                Text(
-                    text = "Xem tất cả >",
-                    fontSize = 12.sp,
-                    fontWeight = FontWeight.Bold,
-                    color = PrimaryCTA
-                )
-            }
-
-            // Products Row (2 product cards)
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(12.dp)
-            ) {
-                // Product 1
-                Column(
-                    modifier = Modifier
-                        .weight(1f)
-                        .clip(RoundedCornerShape(16.dp))
-                        .background(SecondarySurface)
-                        .border(1.dp, BorderDivider, RoundedCornerShape(16.dp))
-                        .padding(10.dp)
-                ) {
-                    Box(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .height(110.dp)
-                            .clip(RoundedCornerShape(12.dp))
-                            .background(CardSurface),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        Icon(
-                            painter = painterResource(id = R.drawable.ic_shopping_bag),
-                            contentDescription = null,
-                            tint = PrimaryCTA,
-                            modifier = Modifier.size(36.dp)
-                        )
-                        Box(
-                            modifier = Modifier
-                                .align(Alignment.TopStart)
-                                .padding(4.dp)
-                                .clip(RoundedCornerShape(6.dp))
-                                .background(DangerBg)
-                                .padding(horizontal = 6.dp, vertical = 2.dp)
-                        ) {
-                            Text(text = "Khoái khẩu", fontSize = 9.sp, fontWeight = FontWeight.Bold, color = DangerText)
-                        }
-                    }
-
-                    Spacer(modifier = Modifier.height(8.dp))
-
-                    Text(
-                        text = "ORIJEN CANADA",
-                        fontSize = 9.sp,
-                        fontWeight = FontWeight.Bold,
-                        color = MutedText
-                    )
-                    Text(
-                        text = "Hạt Orijen Cat & Kitten 1.8kg",
-                        fontSize = 12.sp,
-                        fontWeight = FontWeight.Bold,
-                        color = PrimaryText,
-                        maxLines = 1
-                    )
-                    Spacer(modifier = Modifier.height(4.dp))
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.SpaceBetween
-                    ) {
-                        Column {
-                            Text(
-                                text = "620.000đ",
-                                fontSize = 13.sp,
-                                fontWeight = FontWeight.Bold,
-                                color = PrimaryCTA
-                            )
-                            Text(
-                                text = "690.000đ",
-                                fontSize = 10.sp,
-                                color = MutedText
-                            )
-                        }
-
-                        Box(
-                            modifier = Modifier
-                                .size(32.dp)
-                                .clip(CircleShape)
-                                .background(PrimaryCTA)
-                                .clickable { /* Add to cart */ },
-                            contentAlignment = Alignment.Center
-                        ) {
-                            Icon(
-                                painter = painterResource(id = R.drawable.ic_cart_add),
-                                contentDescription = "Add",
-                                tint = OnPrimaryText,
-                                modifier = Modifier.size(16.dp)
-                            )
-                        }
-                    }
-                }
-
-                // Product 2
-                Column(
-                    modifier = Modifier
-                        .weight(1f)
-                        .clip(RoundedCornerShape(16.dp))
-                        .background(SecondarySurface)
-                        .border(1.dp, BorderDivider, RoundedCornerShape(16.dp))
-                        .padding(10.dp)
-                ) {
-                    Box(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .height(110.dp)
-                            .clip(RoundedCornerShape(12.dp))
-                            .background(CardSurface),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        Icon(
-                            painter = painterResource(id = R.drawable.ic_shopping_bag),
-                            contentDescription = null,
-                            tint = PrimaryCTA,
-                            modifier = Modifier.size(36.dp)
-                        )
-                        Box(
-                            modifier = Modifier
-                                .align(Alignment.TopStart)
-                                .padding(4.dp)
-                                .clip(RoundedCornerShape(6.dp))
-                                .background(SuccessBg)
-                                .padding(horizontal = 6.dp, vertical = 2.dp)
-                        ) {
-                            Text(text = "Bổ sung nước", fontSize = 9.sp, fontWeight = FontWeight.Bold, color = SuccessText)
-                        }
-                    }
-
-                    Spacer(modifier = Modifier.height(8.dp))
-
-                    Text(
-                        text = "MONGE ITALY",
-                        fontSize = 9.sp,
-                        fontWeight = FontWeight.Bold,
-                        color = MutedText
-                    )
-                    Text(
-                        text = "Pate Monge vị Cá Hồi tươi",
-                        fontSize = 12.sp,
-                        fontWeight = FontWeight.Bold,
-                        color = PrimaryText,
-                        maxLines = 1
-                    )
-                    Spacer(modifier = Modifier.height(4.dp))
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.SpaceBetween
-                    ) {
-                        Column {
-                            Text(
-                                text = "28.000đ",
-                                fontSize = 13.sp,
-                                fontWeight = FontWeight.Bold,
-                                color = PrimaryCTA
-                            )
-                            Text(
-                                text = "85g / gói",
-                                fontSize = 10.sp,
-                                color = MutedText
-                            )
-                        }
-
-                        Box(
-                            modifier = Modifier
-                                .size(32.dp)
-                                .clip(CircleShape)
-                                .background(PrimaryCTA)
-                                .clickable { /* Add to cart */ },
-                            contentAlignment = Alignment.Center
-                        ) {
-                            Icon(
-                                painter = painterResource(id = R.drawable.ic_cart_add),
-                                contentDescription = "Add",
-                                tint = OnPrimaryText,
-                                modifier = Modifier.size(16.dp)
-                            )
-                        }
-                    }
-                }
-            }
-        }
-
-        Spacer(modifier = Modifier.height(16.dp))
-
-        // Switch other pet profile banner at bottom
-        Box(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(horizontal = 20.dp)
-                .shadow(2.dp, RoundedCornerShape(16.dp), ambientColor = BorderDivider, spotColor = BorderDivider)
-                .clip(RoundedCornerShape(16.dp))
-                .background(CardSurface)
-                .border(1.dp, BorderDivider, RoundedCornerShape(16.dp))
-                .clickable { /* Switch pet */ }
-                .padding(16.dp),
-            contentAlignment = Alignment.Center
-        ) {
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.SpaceBetween
-            ) {
-                Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(10.dp)
-                ) {
-                    Box(
-                        modifier = Modifier
-                            .size(36.dp)
-                            .clip(CircleShape)
-                            .background(SecondarySoft),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        Icon(
-                            painter = painterResource(id = R.drawable.ic_paw),
-                            contentDescription = null,
-                            tint = SecondarySoftText,
-                            modifier = Modifier.size(18.dp)
-                        )
-                    }
-
-                    Column {
-                        Text(
-                            text = "Đổi hồ sơ thú cưng khác",
-                            fontSize = 14.sp,
-                            fontWeight = FontWeight.Bold,
-                            color = PrimaryText
-                        )
-                        Text(
-                            text = "Bạn đang quản lý 2 bé",
-                            fontSize = 11.sp,
-                            color = MutedText
-                        )
-                    }
-                }
-
-                Text(
-                    text = "›",
-                    fontSize = 22.sp,
-                    fontWeight = FontWeight.Bold,
-                    color = MutedText
-                )
             }
         }
     }

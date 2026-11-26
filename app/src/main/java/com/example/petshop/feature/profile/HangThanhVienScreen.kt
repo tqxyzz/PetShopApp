@@ -26,7 +26,7 @@ import com.example.petshop.R
 import com.example.petshop.ui.theme.*
 
 @Composable
-fun MembershipScreen(
+fun HangThanhVienScreen(
     onBack: () -> Unit,
     modifier: Modifier = Modifier
 ) {
@@ -115,7 +115,7 @@ fun MembershipScreen(
                 .padding(horizontal = 20.dp)
                 .shadow(6.dp, RoundedCornerShape(24.dp), ambientColor = BorderDivider, spotColor = BorderDivider)
                 .clip(RoundedCornerShape(24.dp))
-                .background(Color(0xFFE2B754)) // Gold Card Background
+                .background(Color(0xFFE2B754))
                 .padding(20.dp)
         ) {
             Column(verticalArrangement = Arrangement.spacedBy(14.dp)) {
@@ -150,7 +150,6 @@ fun MembershipScreen(
                         }
                     }
 
-                    // GOLD SEN Badge
                     Box(
                         modifier = Modifier
                             .clip(RoundedCornerShape(12.dp))
@@ -176,7 +175,6 @@ fun MembershipScreen(
                     }
                 }
 
-                // User Info
                 Row(
                     verticalAlignment = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.spacedBy(12.dp)
@@ -211,7 +209,6 @@ fun MembershipScreen(
                     }
                 }
 
-                // Progress Bar
                 Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
                     Row(
                         modifier = Modifier.fillMaxWidth(),
@@ -265,7 +262,6 @@ fun MembershipScreen(
                     }
                 }
 
-                // Helper text below progress
                 Text(
                     text = "💡 Còn 1.750.000đ nữa để thăng hạng Diamond Sen nhận x2 quyền lợi!",
                     fontSize = 11.sp,
@@ -277,7 +273,6 @@ fun MembershipScreen(
 
         Spacer(modifier = Modifier.height(20.dp))
 
-        // Section Title: Đặc quyền hội viên Sen
         Row(
             modifier = Modifier
                 .fillMaxWidth()
@@ -316,7 +311,6 @@ fun MembershipScreen(
 
         Spacer(modifier = Modifier.height(12.dp))
 
-        // Tiers Row (Đồng, Bạc, Vàng, Kim Cương)
         Row(
             modifier = Modifier
                 .fillMaxWidth()
@@ -353,7 +347,6 @@ fun MembershipScreen(
 
         Spacer(modifier = Modifier.height(16.dp))
 
-        // Gold tier benefits card container
         Column(
             modifier = Modifier
                 .fillMaxWidth()
@@ -471,7 +464,7 @@ fun MembershipScreen(
 
         Spacer(modifier = Modifier.height(16.dp))
 
-        // Referral Banner Card ("Cùng nuôi Boss vui vẻ")
+        // Referral Banner
         Box(
             modifier = Modifier
                 .fillMaxWidth()
@@ -533,7 +526,6 @@ fun MembershipScreen(
                     }
                 }
 
-                // 3 Steps
                 Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
                     Text(
                         text = "Cách thức tham gia 3 bước dễ dàng",
@@ -561,7 +553,7 @@ fun MembershipScreen(
                                 contentAlignment = Alignment.Center
                             ) {
                                 Text(
-                                    text = "${i + 1}",
+                                    text = (i + 1).toString(),
                                     fontSize = 11.sp,
                                     fontWeight = FontWeight.Bold,
                                     color = OnPrimaryText
@@ -578,7 +570,6 @@ fun MembershipScreen(
                     }
                 }
 
-                // Referral Code Box
                 Box(
                     modifier = Modifier
                         .fillMaxWidth()
@@ -638,7 +629,6 @@ fun MembershipScreen(
                     }
                 }
 
-                // Share Button
                 Button(
                     onClick = { /* Share */ },
                     modifier = Modifier
@@ -670,7 +660,6 @@ fun MembershipScreen(
 
         Spacer(modifier = Modifier.height(16.dp))
 
-        // Bottom Stats Row (4 friends, 2000 points)
         Row(
             modifier = Modifier
                 .fillMaxWidth()

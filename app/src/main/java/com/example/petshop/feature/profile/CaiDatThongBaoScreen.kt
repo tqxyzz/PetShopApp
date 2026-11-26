@@ -25,7 +25,7 @@ import com.example.petshop.R
 import com.example.petshop.ui.theme.*
 
 @Composable
-fun NotificationSettingsScreen(
+fun CaiDatThongBaoScreen(
     onBack: () -> Unit,
     modifier: Modifier = Modifier
 ) {
@@ -99,7 +99,7 @@ fun NotificationSettingsScreen(
             }
         }
 
-        // Master Toggle Card ("Bật tất cả thông báo")
+        // Master Toggle Card
         Box(
             modifier = Modifier
                 .fillMaxWidth()
@@ -178,45 +178,40 @@ fun NotificationSettingsScreen(
             }
         }
 
-        // Section: Đơn hàng & Giao vận
-        NotificationSection(
+        ThongBaoSection(
             title = "📦 Đơn hàng & Giao vận",
             items = listOf(
-                NotificationToggleItem("Cập nhật trạng thái đơn hàng", "Đã xác nhận, Đang chuẩn bị pate hạt, Shipper đang giao hỏa tốc đến tận tay Sen.", orderStatus) { orderStatus = it },
-                NotificationToggleItem("Thông báo giao hàng thành công", "Kèm nhắc nhở đánh giá chất lượng món ăn & nhận ngay xu tích lũy Pet Points.", deliverySuccess) { deliverySuccess = it }
+                ThongBaoToggleItem("Cập nhật trạng thái đơn hàng", "Đã xác nhận, Đang chuẩn bị pate hạt, Shipper đang giao hỏa tốc đến tận tay Sen.", orderStatus) { orderStatus = it },
+                ThongBaoToggleItem("Thông báo giao hàng thành công", "Kèm nhắc nhở đánh giá chất lượng món ăn & nhận ngay xu tích lũy Pet Points.", deliverySuccess) { deliverySuccess = it }
             )
         )
 
-        // Section: Ưu đãi & Điểm thưởng Boss Cưng
-        NotificationSection(
+        ThongBaoSection(
             title = "🎁 Ưu đãi & Điểm thưởng Boss Cưng",
             items = listOf(
-                NotificationToggleItem("Flash Sale & Giảm giá chớp nhoáng", "Nhắc nhở kịp thời giờ vàng săn hạt thơm ngon & pate giá sốc mỗi tuần.", flashSale) { flashSale = it },
-                NotificationToggleItem("Ưu đãi độc quyền theo hồ sơ Boss", "Voucher sinh nhật bé Miu, giảm giá thức ăn chuẩn khẩu vị riêng của Boss cưng.", bossOffers) { bossOffers = it },
-                NotificationToggleItem("Biến động ví Pet Points", "Nhắc điểm danh nhận xu cưng mỗi ngày và cảnh báo khi Pet Points sắp hết hạn.", pointsWallet) { pointsWallet = it }
+                ThongBaoToggleItem("Flash Sale & Giảm giá chớp nhoáng", "Nhắc nhở kịp thời giờ vàng săn hạt thơm ngon & pate giá sốc mỗi tuần.", flashSale) { flashSale = it },
+                ThongBaoToggleItem("Ưu đãi độc quyền theo hồ sơ Boss", "Voucher sinh nhật bé Miu, giảm giá thức ăn chuẩn khẩu vị riêng của Boss cưng.", bossOffers) { bossOffers = it },
+                ThongBaoToggleItem("Biến động ví Pet Points", "Nhắc điểm danh nhận xu cưng mỗi ngày và cảnh báo khi Pet Points sắp hết hạn.", pointsWallet) { pointsWallet = it }
             )
         )
 
-        // Section: Trợ lý AI & Chăm sóc sinh hoạt
-        NotificationSection(
+        ThongBaoSection(
             title = "✨ Trợ lý AI & Chăm sóc sinh hoạt",
             items = listOf(
-                NotificationToggleItem("Lời khuyên dinh dưỡng định kỳ từ AI", "Nhắc bổ sung nước mùa nóng, điều chỉnh khẩu phần hạt khi Boss tăng cân.", aiNutrition) { aiNutrition = it },
-                NotificationToggleItem("Tin nhắn từ Avocado PetBot", "Phản hồi tự động giải đáp thắc mắc về kích thước phụ kiện và vị pate ưa thích.", petBot) { petBot = it }
+                ThongBaoToggleItem("Lời khuyên dinh dưỡng định kỳ từ AI", "Nhắc bổ sung nước mùa nóng, điều chỉnh khẩu phần hạt khi Boss tăng cân.", aiNutrition) { aiNutrition = it },
+                ThongBaoToggleItem("Tin nhắn từ Avocado PetBot", "Phản hồi tự động giải đáp thắc mắc về kích thước phụ kiện và vị pate ưa thích.", petBot) { petBot = it }
             )
         )
 
-        // Section: Kênh nhận thông báo
-        NotificationSection(
+        ThongBaoSection(
             title = "📡 Kênh nhận thông báo",
             items = listOf(
-                NotificationToggleItem("Thông báo đẩy ứng dụng", "Push Notifications trên màn hình khóa", pushNotif) { pushNotif = it },
-                NotificationToggleItem("Tin nhắn SMS", "Chỉ nhận mã OTP bảo mật & Shipper gọi", smsNotif) { smsNotif = it },
-                NotificationToggleItem("Email bản tin & Hóa đơn", "Bản tin tháng & hóa đơn điện tử VAT", emailNotif) { emailNotif = it }
+                ThongBaoToggleItem("Thông báo đẩy ứng dụng", "Push Notifications trên màn hình khóa", pushNotif) { pushNotif = it },
+                ThongBaoToggleItem("Tin nhắn SMS", "Chỉ nhận mã OTP bảo mật & Shipper gọi", smsNotif) { smsNotif = it },
+                ThongBaoToggleItem("Email bản tin & Hóa đơn", "Bản tin tháng & hóa đơn điện tử VAT", emailNotif) { emailNotif = it }
             )
         )
 
-        // Do Not Disturb Card ("Không làm phiền ban đêm")
         Box(
             modifier = Modifier
                 .fillMaxWidth()
@@ -312,7 +307,6 @@ fun NotificationSettingsScreen(
             }
         }
 
-        // Footer System Notice
         Row(
             modifier = Modifier
                 .fillMaxWidth()
@@ -338,9 +332,9 @@ fun NotificationSettingsScreen(
 }
 
 @Composable
-fun NotificationSection(
+fun ThongBaoSection(
     title: String,
-    items: List<NotificationToggleData>
+    items: List<ThongBaoToggleData>
 ) {
     Column(
         modifier = Modifier
@@ -398,16 +392,16 @@ fun NotificationSection(
     }
 }
 
-data class NotificationToggleData(
+data class ThongBaoToggleData(
     val title: String,
     val subtitle: String,
     val checked: Boolean,
     val onCheckedChange: (Boolean) -> Unit
 )
 
-fun NotificationToggleItem(
+fun ThongBaoToggleItem(
     title: String,
     subtitle: String,
     checked: Boolean,
     onCheckedChange: (Boolean) -> Unit
-) = NotificationToggleData(title, subtitle, checked, onCheckedChange)
+) = ThongBaoToggleData(title, subtitle, checked, onCheckedChange)

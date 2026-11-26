@@ -24,7 +24,7 @@ import com.example.petshop.R
 import com.example.petshop.ui.theme.*
 
 @Composable
-fun PetPointsHistoryScreen(
+fun LichSuPetPointsScreen(
     onBack: () -> Unit,
     modifier: Modifier = Modifier
 ) {
@@ -113,7 +113,7 @@ fun PetPointsHistoryScreen(
                 .padding(horizontal = 20.dp)
                 .shadow(6.dp, RoundedCornerShape(24.dp), ambientColor = BorderDivider, spotColor = BorderDivider)
                 .clip(RoundedCornerShape(24.dp))
-                .background(Color(0xFFE26A54)) // Warm Orange-Red Card
+                .background(Color(0xFFE26A54))
                 .padding(20.dp)
         ) {
             Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
@@ -173,7 +173,6 @@ fun PetPointsHistoryScreen(
                     fontWeight = FontWeight.Medium
                 )
 
-                // Sub-cards row (Total earned vs Total used)
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.spacedBy(10.dp)
@@ -265,7 +264,7 @@ fun PetPointsHistoryScreen(
 
         Spacer(modifier = Modifier.height(16.dp))
 
-        // Filter Bar ("Bộ lọc giao dịch")
+        // Filter Bar
         Row(
             modifier = Modifier
                 .fillMaxWidth()
@@ -280,7 +279,6 @@ fun PetPointsHistoryScreen(
                 color = PrimaryText
             )
 
-            // Month Selector Pill
             Box(
                 modifier = Modifier
                     .clip(RoundedCornerShape(12.dp))
@@ -305,7 +303,6 @@ fun PetPointsHistoryScreen(
 
         Spacer(modifier = Modifier.height(10.dp))
 
-        // Filter Chips Row
         Row(
             modifier = Modifier
                 .fillMaxWidth()
@@ -340,20 +337,19 @@ fun PetPointsHistoryScreen(
 
         Spacer(modifier = Modifier.height(16.dp))
 
-        // Transaction Groups
         val transactions = listOf(
             Triple("Hôm nay", "24/10/2025", listOf(
-                TransactionItem("Điểm danh hằng ngày", "Chuỗi 4 ngày liên tiếp cùng bé cưng", "08:30 sáng", "+30", true),
-                TransactionItem("Đánh giá 5 sao sản phẩm", "Hạt Orijen Cat & Kitten giàu đạm", "10:15 sáng", "+50", true)
+                GiaoDichItem("Điểm danh hằng ngày", "Chuỗi 4 ngày liên tiếp cùng bé cưng", "08:30 sáng", "+30", true),
+                GiaoDichItem("Đánh giá 5 sao sản phẩm", "Hạt Orijen Cat & Kitten giàu đạm", "10:15 sáng", "+50", true)
             )),
             Triple("Hôm qua", "23/10/2025", listOf(
-                TransactionItem("Đổi Voucher 50.000đ", "Đơn mua hạt Boss cưng", "19:42 tối", "-500", false),
-                TransactionItem("Tích lũy từ đơn hàng", "Đơn thành công #AVO-892419", "15:20 chiều", "+98", true)
+                GiaoDichItem("Đổi Voucher 50.000đ", "Đơn mua hạt Boss cưng", "19:42 tối", "-500", false),
+                GiaoDichItem("Tích lũy từ đơn hàng", "Đơn thành công #AVO-892419", "15:20 chiều", "+98", true)
             )),
             Triple("Tuần trước", "18/10/2025", listOf(
-                TransactionItem("Khấu trừ thanh toán", "Trừ trực tiếp đơn #AVO-876120", "11:05 sáng", "-300", false),
-                TransactionItem("Sinh nhật bé Miu cưng", "Quà tặng ngọt ngào từ Avocado", "00:00 sáng", "+200", true),
-                TransactionItem("Giới thiệu bạn mới", "Bạn Hoàng Anh đăng ký thành công", "14:15 chiều", "+100", true)
+                GiaoDichItem("Khấu trừ thanh toán", "Trừ trực tiếp đơn #AVO-876120", "11:05 sáng", "-300", false),
+                GiaoDichItem("Sinh nhật bé Miu cưng", "Quà tặng ngọt ngào từ Avocado", "00:00 sáng", "+200", true),
+                GiaoDichItem("Giới thiệu bạn mới", "Bạn Hoàng Anh đăng ký thành công", "14:15 chiều", "+100", true)
             ))
         )
 
@@ -449,7 +445,6 @@ fun PetPointsHistoryScreen(
 
         Spacer(modifier = Modifier.height(16.dp))
 
-        // Policy Notice Box at bottom
         Box(
             modifier = Modifier
                 .fillMaxWidth()
@@ -506,7 +501,7 @@ fun PetPointsHistoryScreen(
     }
 }
 
-data class TransactionItem(
+data class GiaoDichItem(
     val title: String,
     val subtitle: String,
     val time: String,

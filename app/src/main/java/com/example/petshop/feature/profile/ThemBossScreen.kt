@@ -28,7 +28,7 @@ import com.example.petshop.ui.components.PetShopTextField
 import com.example.petshop.ui.theme.*
 
 @Composable
-fun AddPetScreen(
+fun ThemBossScreen(
     onBack: () -> Unit,
     onPetAdded: () -> Unit,
     modifier: Modifier = Modifier
@@ -126,7 +126,6 @@ fun AddPetScreen(
                     )
                 }
 
-                // Camera Badge
                 Box(
                     modifier = Modifier
                         .size(32.dp)
@@ -162,7 +161,7 @@ fun AddPetScreen(
 
         Spacer(modifier = Modifier.height(8.dp))
 
-        // 1. Pet Type & Basic Info Card Container
+        // Pet Type & Basic Info
         Column(
             modifier = Modifier
                 .fillMaxWidth()
@@ -181,7 +180,6 @@ fun AddPetScreen(
                 color = PrimaryText
             )
 
-            // Pet Type Selector Cards (Cún cưng, Mèo con, Khác)
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.spacedBy(10.dp)
@@ -225,7 +223,6 @@ fun AddPetScreen(
                 }
             }
 
-            // Pet Name Field
             PetShopTextField(
                 value = petName,
                 onValueChange = { petName = it },
@@ -235,7 +232,6 @@ fun AddPetScreen(
                 trailingLabel = "Thân mật & dễ nhớ"
             )
 
-            // Specific Breed Field
             Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
                 PetShopTextField(
                     value = petBreed,
@@ -244,7 +240,6 @@ fun AddPetScreen(
                     placeholder = "Nhập giống loài"
                 )
                 Spacer(modifier = Modifier.height(4.dp))
-                // Quick suggestion chips
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.spacedBy(6.dp)
@@ -265,12 +260,10 @@ fun AddPetScreen(
                 }
             }
 
-            // Gender & Sterilization
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.spacedBy(16.dp)
             ) {
-                // Gender
                 Column(modifier = Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(6.dp)) {
                     Text(text = "Giới tính", fontSize = 14.sp, fontWeight = FontWeight.SemiBold, color = SecondaryText)
                     Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
@@ -296,7 +289,6 @@ fun AddPetScreen(
                     }
                 }
 
-                // Sterilization
                 Column(modifier = Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(6.dp)) {
                     Text(text = "Triệt sản", fontSize = 14.sp, fontWeight = FontWeight.SemiBold, color = SecondaryText)
                     Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
@@ -323,7 +315,6 @@ fun AddPetScreen(
                 }
             }
 
-            // Birthday / Adoption date
             Column {
                 PetShopTextField(
                     value = birthDate,
@@ -344,7 +335,7 @@ fun AddPetScreen(
 
         Spacer(modifier = Modifier.height(16.dp))
 
-        // 2. Physical & Lifestyle Card Container
+        // Physical & Lifestyle
         Column(
             modifier = Modifier
                 .fillMaxWidth()
@@ -374,7 +365,6 @@ fun AddPetScreen(
                 )
             }
 
-            // Current Weight
             Column {
                 Row(
                     modifier = Modifier.fillMaxWidth(),
@@ -416,7 +406,6 @@ fun AddPetScreen(
                 }
             }
 
-            // Activity level options
             Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
                 Text(
                     text = "Mức độ vận động hàng ngày",
@@ -482,7 +471,7 @@ fun AddPetScreen(
 
         Spacer(modifier = Modifier.height(16.dp))
 
-        // 3. Favorite Taste & Allergies Card Container
+        // Favorite Taste & Allergies
         Column(
             modifier = Modifier
                 .fillMaxWidth()
@@ -525,12 +514,8 @@ fun AddPetScreen(
                 )
             }
 
-            // Chips selection
             Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.spacedBy(8.dp)
-                ) {
+                Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                     Box(modifier = Modifier.clip(RoundedCornerShape(12.dp)).background(AdminMaroon).padding(horizontal = 12.dp, vertical = 6.dp)) {
                         Text(text = "✓ Pate cá ngừ", fontSize = 12.sp, fontWeight = FontWeight.Bold, color = OnPrimaryText)
                     }
@@ -538,10 +523,7 @@ fun AddPetScreen(
                         Text(text = "✓ Hạt vị thịt gà", fontSize = 12.sp, fontWeight = FontWeight.Bold, color = OnPrimaryText)
                     }
                 }
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.spacedBy(8.dp)
-                ) {
+                Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                     Box(modifier = Modifier.clip(RoundedCornerShape(12.dp)).background(SecondarySurface).border(1.dp, BorderDivider, RoundedCornerShape(12.dp)).padding(horizontal = 12.dp, vertical = 6.dp)) {
                         Text(text = "+ Súp thưởng tôm", fontSize = 12.sp, fontWeight = FontWeight.Bold, color = SecondaryText)
                     }
@@ -549,10 +531,7 @@ fun AddPetScreen(
                         Text(text = "+ Thịt bò sấy thăng hoa", fontSize = 12.sp, fontWeight = FontWeight.Bold, color = SecondaryText)
                     }
                 }
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.spacedBy(8.dp)
-                ) {
+                Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                     Box(modifier = Modifier.clip(RoundedCornerShape(12.dp)).background(SecondarySurface).border(1.dp, BorderDivider, RoundedCornerShape(12.dp)).padding(horizontal = 12.dp, vertical = 6.dp)) {
                         Text(text = "+ Cá hồi áp chảo", fontSize = 12.sp, fontWeight = FontWeight.Bold, color = SecondaryText)
                     }
@@ -562,7 +541,6 @@ fun AddPetScreen(
                 }
             }
 
-            // Allergy notes
             Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
                 Text(
                     text = "Món bé không thích hoặc dị ứng",
@@ -581,7 +559,7 @@ fun AddPetScreen(
 
         Spacer(modifier = Modifier.height(16.dp))
 
-        // 4. Default Priority Boss Switch Card
+        // Default Priority Boss Switch Card
         Column(
             modifier = Modifier
                 .fillMaxWidth()
@@ -644,7 +622,6 @@ fun AddPetScreen(
 
         Spacer(modifier = Modifier.height(16.dp))
 
-        // AI helper notice box
         Box(
             modifier = Modifier
                 .fillMaxWidth()
@@ -676,7 +653,6 @@ fun AddPetScreen(
 
         Spacer(modifier = Modifier.height(24.dp))
 
-        // Bottom Button
         Box(
             modifier = Modifier
                 .fillMaxWidth()
