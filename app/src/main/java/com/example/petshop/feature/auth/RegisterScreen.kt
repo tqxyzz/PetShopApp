@@ -61,6 +61,7 @@ import com.example.petshop.ui.theme.SecondarySurface
 import com.example.petshop.ui.theme.SecondaryText
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.UserProfileChangeRequest
+import com.google.firebase.firestore.FirebaseFirestore
 
 @Composable
 fun RegisterScreen(
@@ -70,7 +71,8 @@ fun RegisterScreen(
     modifier: Modifier = Modifier
 ) {
     var fullNameInput by remember { mutableStateOf("") }
-    var accountInput by remember { mutableStateOf("") }
+    var emailInput by remember { mutableStateOf("") }
+    var phoneInput by remember { mutableStateOf("") }
     var passwordInput by remember { mutableStateOf("") }
     var confirmPasswordInput by remember { mutableStateOf("") }
     var agreeTerms by remember { mutableStateOf(true) }
@@ -210,18 +212,34 @@ fun RegisterScreen(
 
                 Spacer(modifier = Modifier.height(16.dp))
 
-                // Email / Phone field
+                // Email field
                 PetShopTextField(
-                    value = accountInput,
+                    value = emailInput,
                     onValueChange = {
-                        accountInput = it
+                        emailInput = it
                         errorMessage = null
                     },
-                    label = "Số điện thoại hoặc Email",
-                    placeholder = "Nhập số điện thoại hoặc email",
+                    label = "Email đăng nhập",
+                    placeholder = "Nhập địa chỉ email của bạn",
                     isRequired = true,
                     leadingIconRes = R.drawable.ic_mail,
                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email)
+                )
+
+                Spacer(modifier = Modifier.height(16.dp))
+
+                // Phone field
+                PetShopTextField(
+                    value = phoneInput,
+                    onValueChange = {
+                        phoneInput = it
+                        errorMessage = null
+                    },
+                    label = "Số điện thoại",
+                    placeholder = "Nhập số điện thoại của bạn",
+                    isRequired = true,
+                    leadingIconRes = R.drawable.ic_phone,
+                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Phone)
                 )
 
                 Spacer(modifier = Modifier.height(16.dp))
@@ -314,7 +332,7 @@ fun RegisterScreen(
                 Button(
                     onClick = {
                         when {
-                            fullNameInput.isBlank() || accountInput.isBlank() || passwordInput.isBlank() -> {
+                            fullNameInput.isBlank() || emailInput.isBlank() || phoneInput.isBlank() || passwordInput.isBlank() -> {
                                 errorMessage = "Vui lòng nhập đầy đủ thông tin bắt buộc"
                             }
                             passwordInput != confirmPasswordInput -> {
@@ -325,15 +343,38 @@ fun RegisterScreen(
                             }
                             else -> {
                                 isLoading = true
-                                FirebaseAuth.getInstance().createUserWithEmailAndPassword(accountInput.trim(), passwordInput)
-                                    .addOnSuccessListener {
-                                        isLoading = false
-                                        val user = FirebaseAuth.getInstance().currentUser
-                                        val profileUpdates = UserProfileChangeRequest.Builder()
-                                            .setDisplayName(fullNameInput)
-                                            .build()
-                                        user?.updateProfile(profileUpdates)
-                                        onNavigateToHome()
+                                FirebaseAuth.getInstance().createUserWithEmailAndPassword(emailInput.trim(), passwordInput)
+                                    .addOnSuccessListener { result ->
+                                        val firebaseUser = result.user
+                                        val uid = firebaseUser?.uid ?: ""
+
+                                        // Lưu thông tin tài khoản vào collection "accounts" (bảng Tai_Khoan trong ERD)
+                                        // ma_vai_tro mặc định là "r1" (Khách hàng)
+                                        val accountMap = hashMapOf(
+                                            "ma_tai_khoan" to uid,
+                                            "ma_vai_tro" to "r1",
+                                            "email" to emailInput.trim(),
+                                            "so_dien_thoai" to phoneInput.trim(),
+                                            "mat_khau" to passwordInput,
+                                            "ten_tai_khoan" to fullNameInput.trim(),
+                                            "xac_thuc" to true
+                                        )
+
+                                        FirebaseFirestore.getInstance().collection("accounts")
+                                            .document(uid)
+                                            .set(accountMap)
+                                            .addOnSuccessListener {
+                                                isLoading = false
+                                                val profileUpdates = UserProfileChangeRequest.Builder()
+                                                    .setDisplayName(fullNameInput.trim())
+                                                    .build()
+                                                firebaseUser?.updateProfile(profileUpdates)
+                                                onNavigateToHome()
+                                            }
+                                            .addOnFailureListener { e ->
+                                                isLoading = false
+                                                errorMessage = "Lưu tài khoản thất bại: ${e.localizedMessage}"
+                                            }
                                     }
                                     .addOnFailureListener { e ->
                                         isLoading = false

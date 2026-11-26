@@ -1,0 +1,20 @@
+[
+  {
+    "ma_tai_khoan": "acc_001",
+    "ma_vai_tro": "r3",
+    "email": "admin@petshop.com",
+    "so_dien_thoai": "0987654321",
+    "mat_khau": "123456",
+    "ten_tai_khoan": "Quản Trị Viên",
+    "xac_thuc": true
+  },
+  {
+    "ma_tai_khoan": "acc_002",
+    "ma_vai_tro": "r1",
+    "email": "trinhquy@gmail.com",
+    "so_dien_thoai": "0333444555",
+    "mat_khau": "123456",
+    "ten_tai_khoan": "Trịnh Quý",
+    "xac_thuc": true
+  }
+]
