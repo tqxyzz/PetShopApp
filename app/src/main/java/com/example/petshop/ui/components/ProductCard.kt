@@ -1,6 +1,5 @@
 package com.example.petshop.ui.components
 
-import android.widget.Toast
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -30,7 +29,6 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextDecoration
@@ -56,7 +54,6 @@ fun ProductCard(
     product: Product,
     onProductClick: (Product) -> Unit,
     onAddToCart: (Product) -> Unit,
-    onToggleFavorite: ((Product) -> Unit)? = null,
     modifier: Modifier = Modifier
 ) {
     var isFavorite by remember { mutableStateOf(false) }
@@ -87,7 +84,6 @@ fun ProductCard(
                         modifier = Modifier.fillMaxSize()
                     )
                 } else {
-                    // Product Mock Graphic / Illustration
                     Column(horizontalAlignment = Alignment.CenterHorizontally) {
                         Text(
                             text = when (product.petType) {
@@ -105,7 +101,6 @@ fun ProductCard(
                     }
                 }
 
-                // Top-Left Badge (e.g. "Bán chạy", "Thảo mộc", "Mới về")
                 if (!product.badge.isNullOrEmpty()) {
                     val (bgColor, textColor) = when (product.badgeColor) {
                         "green" -> Color(0xFFDCFCE7) to Color(0xFF15803D)
@@ -131,7 +126,6 @@ fun ProductCard(
                 }
 
                 // Top-Right Favorite Heart Button
-                val context = LocalContext.current
                 Box(
                     modifier = Modifier
                         .align(Alignment.TopEnd)
@@ -140,15 +134,7 @@ fun ProductCard(
                         .shadow(4.dp, CircleShape)
                         .clip(CircleShape)
                         .background(CardSurface)
-                        .clickable {
-                            isFavorite = !isFavorite
-                            Toast.makeText(
-                                context,
-                                if (isFavorite) "❤️ Đã lưu Yêu Thích 4 trường lên Firebase!" else "🤍 Đã bỏ yêu thích",
-                                Toast.LENGTH_SHORT
-                            ).show()
-                            onToggleFavorite?.invoke(product)
-                        },
+                        .clickable { isFavorite = !isFavorite },
                     contentAlignment = Alignment.Center
                 ) {
                     Icon(
@@ -164,7 +150,6 @@ fun ProductCard(
             Column(
                 modifier = Modifier.padding(12.dp)
             ) {
-                // Brand Text
                 Text(
                     text = product.brand,
                     fontSize = 10.sp,
@@ -175,7 +160,6 @@ fun ProductCard(
 
                 Spacer(modifier = Modifier.height(2.dp))
 
-                // Product Title
                 Text(
                     text = product.title,
                     fontSize = 13.sp,
@@ -188,7 +172,6 @@ fun ProductCard(
 
                 Spacer(modifier = Modifier.height(6.dp))
 
-                // Rating & Sales Count
                 Row(
                     verticalAlignment = Alignment.CenterVertically
                 ) {
@@ -214,14 +197,12 @@ fun ProductCard(
 
                 Spacer(modifier = Modifier.height(8.dp))
 
-                // Price Row & Cart Action Button
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.SpaceBetween,
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     Column {
-                        // Current Price
                         Text(
                             text = product.currentPrice,
                             fontSize = 15.sp,
@@ -229,7 +210,6 @@ fun ProductCard(
                             color = PrimaryText
                         )
 
-                        // Old Price & Discount Badge
                         if (!product.oldPrice.isNullOrEmpty()) {
                             Row(verticalAlignment = Alignment.CenterVertically) {
                                 Text(
@@ -251,7 +231,6 @@ fun ProductCard(
                         }
                     }
 
-                    // Cart Action Circle Button
                     Box(
                         modifier = Modifier
                             .size(36.dp)

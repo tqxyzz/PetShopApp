@@ -70,8 +70,7 @@ fun ProductDetailScreen(
     onBack: () -> Unit = {},
     onNavigateToCart: () -> Unit = {},
     onAddToCart: (Product) -> Unit = {},
-    onBuyNow: () -> Unit = {},
-    onToggleFavorite: ((Product) -> Unit)? = null
+    onBuyNow: () -> Unit = {}
 ) {
     var selectedWeightIndex by remember { mutableStateOf(1) } // 1: Túi 2kg
     var isFavorite by remember { mutableStateOf(false) }
@@ -251,12 +250,7 @@ fun ProductDetailScreen(
                             .size(36.dp)
                             .clip(CircleShape)
                             .background(SecondarySurface)
-                            .clickable {
-                                isFavorite = !isFavorite
-                                if (product != null) {
-                                    onToggleFavorite?.invoke(product)
-                                }
-                            },
+                            .clickable { isFavorite = !isFavorite },
                         contentAlignment = Alignment.Center
                     ) {
                         Icon(

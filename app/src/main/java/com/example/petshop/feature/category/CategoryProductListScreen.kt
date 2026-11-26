@@ -145,7 +145,6 @@ fun CategoryProductListScreen(
     onNavigateToCart: () -> Unit = {},
     onProductClick: (Product) -> Unit = {},
     onAddToCart: (Product) -> Unit = {},
-    onToggleFavorite: (Product) -> Unit = {},
     modifier: Modifier = Modifier
 ) {
     var selectedSort by remember { mutableStateOf("Phổ biến") }
@@ -509,7 +508,6 @@ fun CategoryProductListScreen(
                             product = product,
                             onProductClick = onProductClick,
                             onAddToCart = onAddToCart,
-                            onToggleFavorite = onToggleFavorite,
                             modifier = Modifier.weight(1f)
                         )
                     }

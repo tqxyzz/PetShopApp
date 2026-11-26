@@ -68,7 +68,6 @@ fun TextSearchResultScreen(
     onNavigateToProfile: () -> Unit = {},
     onProductClick: (Product) -> Unit = {},
     onAddToCart: (Product) -> Unit = {},
-    onToggleFavorite: (Product) -> Unit = {},
     viewModel: SearchViewModel = viewModel()
 ) {
     var searchQuery by remember { mutableStateOf(initialQuery) }
@@ -372,7 +371,6 @@ fun TextSearchResultScreen(
                                     product = prod,
                                     onProductClick = { onProductClick(prod) },
                                     onAddToCart = { onAddToCart(prod) },
-                                    onToggleFavorite = onToggleFavorite,
                                     modifier = Modifier.weight(1f)
                                 )
                             }
