@@ -19,9 +19,12 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
+import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
+import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -35,6 +38,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
@@ -57,16 +61,27 @@ import com.example.petshop.ui.theme.SecondaryText
 import com.example.petshop.ui.theme.SuccessBg
 import com.example.petshop.ui.theme.SuccessText
 
+enum class DetailSheetAction { NONE, ADD_TO_CART, BUY_NOW }
+
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ProductDetailScreen(
     product: Product? = null,
     onBack: () -> Unit = {},
     onNavigateToCart: () -> Unit = {},
     onAddToCart: (Product) -> Unit = {},
-    onBuyNow: () -> Unit = {}
+    onBuyNow: () -> Unit = {},
+    onToggleFavorite: ((Product) -> Unit)? = null
 ) {
     var selectedWeightIndex by remember { mutableStateOf(1) } // 1: Túi 2kg
     var isFavorite by remember { mutableStateOf(false) }
+
+    // Bottom Sheet Action State
+    var activeSheetAction by remember { mutableStateOf(DetailSheetAction.NONE) }
+    var sheetQuantity by remember { mutableStateOf(1) }
+    var sheetSelectedVariantIndex by remember { mutableStateOf(1) }
+
+    val variantOptions = listOf("Túi 400g", "Túi 2kg Tiêu chuẩn", "Bao Lớn 10kg")
 
     val titleText = product?.title?.ifEmpty { null } ?: "Thức ăn hạt Royal Canin Kitten cho mèo con từ 4 đến 12 tháng tuổi – Túi 2kg Dinh dưỡng toàn diện"
     val brandText = product?.brand?.ifEmpty { null } ?: "Royal Canin (Pháp)"
@@ -114,15 +129,12 @@ fun ProductDetailScreen(
                         )
                     }
 
-                    // Add to Cart button
+                    // Add to Cart button (Triggers BottomSheet)
                     Column(
                         horizontalAlignment = Alignment.CenterHorizontally,
                         modifier = Modifier
                             .clickable {
-                                if (product != null) {
-                                    onAddToCart(product)
-                                }
-                                onNavigateToCart()
+                                activeSheetAction = DetailSheetAction.ADD_TO_CART
                             }
                             .padding(end = 16.dp)
                     ) {
@@ -141,14 +153,16 @@ fun ProductDetailScreen(
                         )
                     }
 
-                    // Primary Buy Now Button
+                    // Primary Buy Now Button (Triggers BottomSheet)
                     Box(
                         modifier = Modifier
                             .weight(1f)
                             .height(48.dp)
                             .clip(RoundedCornerShape(24.dp))
                             .background(PrimaryCTA)
-                            .clickable { onBuyNow() },
+                            .clickable {
+                                activeSheetAction = DetailSheetAction.BUY_NOW
+                            },
                         contentAlignment = Alignment.Center
                     ) {
                         Row(verticalAlignment = Alignment.CenterVertically) {
@@ -237,7 +251,12 @@ fun ProductDetailScreen(
                             .size(36.dp)
                             .clip(CircleShape)
                             .background(SecondarySurface)
-                            .clickable { isFavorite = !isFavorite },
+                            .clickable {
+                                isFavorite = !isFavorite
+                                if (product != null) {
+                                    onToggleFavorite?.invoke(product)
+                                }
+                            },
                         contentAlignment = Alignment.Center
                     ) {
                         Icon(
@@ -589,7 +608,10 @@ fun ProductDetailScreen(
                         price = "115.000đ",
                         isSelected = selectedWeightIndex == 0,
                         modifier = Modifier.weight(1f),
-                        onClick = { selectedWeightIndex = 0 }
+                        onClick = {
+                            selectedWeightIndex = 0
+                            sheetSelectedVariantIndex = 0
+                        }
                     )
                     VariantCard(
                         title = "✓ Tiêu chuẩn",
@@ -597,14 +619,20 @@ fun ProductDetailScreen(
                         badge = "Tiết kiệm 20%",
                         isSelected = selectedWeightIndex == 1,
                         modifier = Modifier.weight(1.2f),
-                        onClick = { selectedWeightIndex = 1 }
+                        onClick = {
+                            selectedWeightIndex = 1
+                            sheetSelectedVariantIndex = 1
+                        }
                     )
                     VariantCard(
                         title = "Bao Lớn",
                         price = "1.650.000đ",
                         isSelected = selectedWeightIndex == 2,
                         modifier = Modifier.weight(1f),
-                        onClick = { selectedWeightIndex = 2 }
+                        onClick = {
+                            selectedWeightIndex = 2
+                            sheetSelectedVariantIndex = 2
+                        }
                     )
                 }
             }
@@ -648,317 +676,251 @@ fun ProductDetailScreen(
 
                 Spacer(modifier = Modifier.height(10.dp))
 
-                LazyRow(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-                    item {
-                        Row(
-                            modifier = Modifier
-                                .clip(RoundedCornerShape(14.dp))
-                                .background(SecondarySurface)
-                                .border(1.dp, BorderDivider, RoundedCornerShape(14.dp))
-                                .padding(horizontal = 12.dp, vertical = 8.dp),
-                            verticalAlignment = Alignment.CenterVertically
-                        ) {
-                            Column {
-                                Text(
-                                    text = "Giảm 20.000đ",
-                                    fontSize = 13.sp,
-                                    fontWeight = FontWeight.Bold,
-                                    color = PrimaryText
-                                )
-                                Text(
-                                    text = "Đơn từ 299.000đ",
-                                    fontSize = 11.sp,
-                                    color = MutedText
-                                )
-                            }
-                            Spacer(modifier = Modifier.width(12.dp))
-                            Box(
-                                modifier = Modifier
-                                    .clip(RoundedCornerShape(12.dp))
-                                    .background(PrimaryCTA)
-                                    .padding(horizontal = 10.dp, vertical = 4.dp)
-                            ) {
-                                Text(
-                                    text = "Lưu mã",
-                                    fontSize = 11.sp,
-                                    fontWeight = FontWeight.Bold,
-                                    color = Color.White
-                                )
-                            }
-                        }
-                    }
-
-                    item {
-                        Row(
-                            modifier = Modifier
-                                .clip(RoundedCornerShape(14.dp))
-                                .background(SecondarySurface)
-                                .border(1.dp, BorderDivider, RoundedCornerShape(14.dp))
-                                .padding(horizontal = 12.dp, vertical = 8.dp),
-                            verticalAlignment = Alignment.CenterVertically
-                        ) {
-                            Column {
-                                Text(
-                                    text = "Freeship Ex...",
-                                    fontSize = 13.sp,
-                                    fontWeight = FontWeight.Bold,
-                                    color = PrimaryText
-                                )
-                                Text(
-                                    text = "Tối đa 30k nội...",
-                                    fontSize = 11.sp,
-                                    color = MutedText
-                                )
-                            }
-                        }
-                    }
-                }
-
-                Spacer(modifier = Modifier.height(10.dp))
-
-                // Gift Callout
-                Box(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .clip(RoundedCornerShape(14.dp))
-                        .background(SecondarySurface)
-                        .padding(12.dp)
-                ) {
-                    Row(verticalAlignment = Alignment.CenterVertically) {
-                        Text(text = "🎁", fontSize = 20.sp)
-                        Spacer(modifier = Modifier.width(10.dp))
-                        Text(
-                            text = "Quà tặng đặc biệt: Tặng kèm 2 gói pate Ciao Churu hảo hạng khi mua sản phẩm cho bé cưng!",
-                            fontSize = 12.sp,
-                            fontWeight = FontWeight.Medium,
-                            color = SecondarySoftText,
-                            lineHeight = 16.sp
-                        )
-                    }
-                }
-            }
-
-            Spacer(modifier = Modifier.height(10.dp))
-
-            // Commitments 4-Grid Cards Section
-            Column(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .background(CardSurface)
-                    .padding(16.dp)
-            ) {
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    Icon(
-                        painter = painterResource(id = R.drawable.ic_shield_check),
-                        contentDescription = null,
-                        tint = SuccessText,
-                        modifier = Modifier.size(18.dp)
-                    )
-                    Spacer(modifier = Modifier.width(6.dp))
-                    Text(
-                        text = "Cam kết từ Avocado PetShop",
-                        fontSize = 15.sp,
-                        fontWeight = FontWeight.Bold,
-                        color = PrimaryText
-                    )
-                }
-
-                Spacer(modifier = Modifier.height(12.dp))
-
-                Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                    Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                        CommitmentItemCard(
-                            iconText = "✔ 100% Chính Hãng",
-                            desc = "Nhập khẩu chính ngạch Pháp có tem phụ",
-                            modifier = Modifier.weight(1f)
-                        )
-                        CommitmentItemCard(
-                            iconText = "🔄 Hoàn tiền 200%",
-                            desc = "Nếu phát hiện hàng cận hạn hoặc giả mạo",
-                            modifier = Modifier.weight(1f)
-                        )
-                    }
-                    Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                        CommitmentItemCard(
-                            iconText = "⚡ Hỏa tốc 2 Giờ",
-                            desc = "Giao liền tay tại TP.HCM & Hà Nội",
-                            modifier = Modifier.weight(1f)
-                        )
-                        CommitmentItemCard(
-                            iconText = "↩ Đổi trả 7 ngày",
-                            desc = "Miễn phí nếu bao bì chưa khui miệng",
-                            modifier = Modifier.weight(1f)
-                        )
-                    }
-                }
-            }
-
-            Spacer(modifier = Modifier.height(10.dp))
-
-            // Specifications Table Section
-            Column(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .background(CardSurface)
-                    .padding(16.dp)
-            ) {
-                Text(
-                    text = "📄 Thông số & Xuất xứ chi tiết",
-                    fontSize = 15.sp,
-                    fontWeight = FontWeight.Bold,
-                    color = PrimaryText
-                )
-
-                Spacer(modifier = Modifier.height(12.dp))
-
-                Column {
-                    SpecRow(label = "Thương hiệu", value = brandText)
-                    SpecRow(label = "Phù hợp loài", value = if (product?.petType == "dog") "Thú cưng Boss Cún 🐶" else "Thú cưng Hoàng Thượng 🐱")
-                    SpecRow(label = "Nơi sản xuất", value = "Pháp / Hàn Quốc (tùy lô)")
-                    SpecRow(label = "Hạn sử dụng", value = "18 tháng (Lô mới T8/2026)")
-                    SpecRow(label = "Tình trạng", value = "Còn hàng • Chính hãng 100%")
-                }
-            }
-
-            Spacer(modifier = Modifier.height(10.dp))
-
-            // Community Feedback Reviews Section
-            Column(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .background(CardSurface)
-                    .padding(16.dp)
-            ) {
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Text(
-                        text = "Feedback từ cộng đồng Sen",
-                        fontSize = 15.sp,
-                        fontWeight = FontWeight.Bold,
-                        color = PrimaryText
-                    )
-                    Text(
-                        text = "Xem tất cả (2.1k) >",
-                        fontSize = 12.sp,
-                        fontWeight = FontWeight.Bold,
-                        color = SecondarySoftText
-                    )
-                }
-
-                Spacer(modifier = Modifier.height(12.dp))
-
-                // Overall Score Card
-                Box(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .clip(RoundedCornerShape(16.dp))
-                        .background(SecondarySurface)
-                        .padding(12.dp)
-                ) {
-                    Row(
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.SpaceBetween,
-                        modifier = Modifier.fillMaxWidth()
+                Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    Box(
+                        modifier = Modifier
+                            .clip(RoundedCornerShape(8.dp))
+                            .background(Color(0xFFFFF1EA))
+                            .border(1.dp, BorderDivider, RoundedCornerShape(8.dp))
+                            .padding(horizontal = 10.dp, vertical = 6.dp)
                     ) {
-                        Column {
-                            Text(
-                                text = "$ratingVal ⭐⭐⭐⭐⭐",
-                                fontSize = 20.sp,
-                                fontWeight = FontWeight.ExtraBold,
-                                color = PrimaryCTA
-                            )
-                            Text(
-                                text = "99% Sen hài lòng và quay lại",
-                                fontSize = 11.sp,
-                                color = SecondaryText
-                            )
-                        }
-
-                        // Avatar Stack indicator
-                        Row(verticalAlignment = Alignment.CenterVertically) {
-                            Box(
-                                modifier = Modifier
-                                    .size(28.dp)
-                                    .clip(CircleShape)
-                                    .background(Color(0xFFFED7AA)),
-                                contentAlignment = Alignment.Center
-                            ) { Text("Miu", fontSize = 10.sp) }
-                            Box(
-                                modifier = Modifier
-                                    .size(28.dp)
-                                    .clip(CircleShape)
-                                    .background(Color(0xFFBBF7D0)),
-                                contentAlignment = Alignment.Center
-                            ) { Text("Bơ", fontSize = 10.sp) }
-                            Box(
-                                modifier = Modifier
-                                    .size(28.dp)
-                                    .clip(CircleShape)
-                                    .background(PrimaryCTA),
-                                contentAlignment = Alignment.Center
-                            ) {
-                                Text(
-                                    "+2k",
-                                    fontSize = 10.sp,
-                                    color = Color.White,
-                                    fontWeight = FontWeight.Bold
-                                )
-                            }
-                        }
-                    }
-                }
-
-                Spacer(modifier = Modifier.height(16.dp))
-
-                // Review 1
-                Column {
-                    Row(verticalAlignment = Alignment.CenterVertically) {
-                        Box(
-                            modifier = Modifier
-                                .size(36.dp)
-                                .clip(CircleShape)
-                                .background(SecondarySoft),
-                            contentAlignment = Alignment.Center
-                        ) {
-                            Text(
-                                "LA",
-                                fontSize = 12.sp,
-                                fontWeight = FontWeight.Bold,
-                                color = SecondarySoftText
-                            )
-                        }
-                        Spacer(modifier = Modifier.width(10.dp))
-                        Column(modifier = Modifier.weight(1f)) {
-                            Text(
-                                text = "Linh Anh (Sen của bé Mochi)",
-                                fontSize = 13.sp,
-                                fontWeight = FontWeight.Bold,
-                                color = PrimaryText
-                            )
-                            Text(
-                                text = "Đã mua 3 lần",
-                                fontSize = 11.sp,
-                                color = MutedText
-                            )
-                        }
-                        Text(text = "Hôm qua", fontSize = 11.sp, color = MutedText)
+                        Text(
+                            text = "🎟 Giảm 30k đơn 300k",
+                            fontSize = 11.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = AdminMaroon
+                        )
                     }
 
-                    Spacer(modifier = Modifier.height(6.dp))
-
-                    Text(
-                        text = "Sản phẩm thơm phức, bé nhà mình kén ăn mà đổ ra bát là vét sạch trơn. Sau 2 tuần lông mượt hơn hẳn, trộm vía đi vệ sinh thành khuôn ít mùi. Shop Avocado gói hàng siêu cẩn thận tặng kèm quà ưng xỉu!",
-                        fontSize = 12.sp,
-                        color = SecondaryText,
-                        lineHeight = 17.sp
-                    )
+                    Box(
+                        modifier = Modifier
+                            .clip(RoundedCornerShape(8.dp))
+                            .background(Color(0xFFFFF1EA))
+                            .border(1.dp, BorderDivider, RoundedCornerShape(8.dp))
+                            .padding(horizontal = 10.dp, vertical = 6.dp)
+                    ) {
+                        Text(
+                            text = "🚚 Freeship Extra",
+                            fontSize = 11.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = AdminMaroon
+                        )
+                    }
                 }
             }
 
             Spacer(modifier = Modifier.height(24.dp))
+        }
+
+        // HALF-SCREEN BOTTOM SHEET FOR VARIANT & QUANTITY SELECTION
+        if (activeSheetAction != DetailSheetAction.NONE) {
+            ModalBottomSheet(
+                onDismissRequest = { activeSheetAction = DetailSheetAction.NONE },
+                sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true),
+                containerColor = CardSurface,
+                scrimColor = Color.Black.copy(alpha = 0.5f)
+            ) {
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 20.dp, vertical = 12.dp)
+                ) {
+                    // Header Product Info Row
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Box(
+                            modifier = Modifier
+                                .size(80.dp)
+                                .clip(RoundedCornerShape(16.dp))
+                                .background(Color(0xFFFFF7F2))
+                                .border(1.dp, BorderDivider, RoundedCornerShape(16.dp)),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            if (imageUrl.isNotEmpty()) {
+                                AsyncImage(
+                                    model = imageUrl,
+                                    contentDescription = null,
+                                    contentScale = ContentScale.Crop,
+                                    modifier = Modifier.fillMaxSize()
+                                )
+                            } else {
+                                Text(text = if (product?.petType == "dog") "🐶" else "🐱", fontSize = 36.sp)
+                            }
+                        }
+
+                        Spacer(modifier = Modifier.width(14.dp))
+
+                        Column(modifier = Modifier.weight(1f)) {
+                            Text(
+                                text = currentPriceText,
+                                fontSize = 22.sp,
+                                fontWeight = FontWeight.ExtraBold,
+                                color = PrimaryCTA
+                            )
+                            Spacer(modifier = Modifier.height(2.dp))
+                            Text(
+                                text = "Kho hàng: Còn 128 sản phẩm",
+                                fontSize = 12.sp,
+                                color = MutedText
+                            )
+                            Spacer(modifier = Modifier.height(2.dp))
+                            Text(
+                                text = "Đã chọn: ${variantOptions[sheetSelectedVariantIndex]}",
+                                fontSize = 12.sp,
+                                fontWeight = FontWeight.Bold,
+                                color = PrimaryText
+                            )
+                        }
+
+                        Box(
+                            modifier = Modifier
+                                .size(32.dp)
+                                .clip(CircleShape)
+                                .background(SecondarySurface)
+                                .clickable { activeSheetAction = DetailSheetAction.NONE },
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Text(text = "✕", fontSize = 14.sp, fontWeight = FontWeight.Bold, color = SecondaryText)
+                        }
+                    }
+
+                    Spacer(modifier = Modifier.height(16.dp))
+                    Box(modifier = Modifier.fillMaxWidth().height(1.dp).background(BorderDivider))
+                    Spacer(modifier = Modifier.height(16.dp))
+
+                    // Variant Options Section
+                    Text(
+                        text = "Chọn phân loại / Quy cách:",
+                        fontSize = 14.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = PrimaryText
+                    )
+
+                    Spacer(modifier = Modifier.height(10.dp))
+
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
+                        variantOptions.forEachIndexed { idx, title ->
+                            val isSelected = idx == sheetSelectedVariantIndex
+                            Box(
+                                modifier = Modifier
+                                    .weight(1f)
+                                    .clip(RoundedCornerShape(12.dp))
+                                    .background(if (isSelected) SecondarySoft else CardSurface)
+                                    .border(
+                                        1.dp,
+                                        if (isSelected) AdminMaroon else BorderDivider,
+                                        RoundedCornerShape(12.dp)
+                                    )
+                                    .clickable {
+                                        sheetSelectedVariantIndex = idx
+                                        selectedWeightIndex = idx
+                                    }
+                                    .padding(vertical = 10.dp, horizontal = 6.dp),
+                                contentAlignment = Alignment.Center
+                            ) {
+                                Text(
+                                    text = title,
+                                    fontSize = 12.sp,
+                                    fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Medium,
+                                    color = if (isSelected) AdminMaroon else SecondaryText,
+                                    textAlign = TextAlign.Center
+                                )
+                            }
+                        }
+                    }
+
+                    Spacer(modifier = Modifier.height(18.dp))
+
+                    // Quantity Stepper Row
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Text(
+                            text = "Số lượng mua:",
+                            fontSize = 14.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = PrimaryText
+                        )
+
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            modifier = Modifier
+                                .clip(RoundedCornerShape(20.dp))
+                                .background(SecondarySurface)
+                                .border(1.dp, BorderDivider, RoundedCornerShape(20.dp))
+                                .padding(horizontal = 4.dp, vertical = 2.dp)
+                        ) {
+                            Box(
+                                modifier = Modifier
+                                    .size(32.dp)
+                                    .clip(CircleShape)
+                                    .clickable { if (sheetQuantity > 1) sheetQuantity-- },
+                                contentAlignment = Alignment.Center
+                            ) {
+                                Text(text = "−", fontSize = 16.sp, fontWeight = FontWeight.Bold, color = PrimaryText)
+                            }
+
+                            Text(
+                                text = "$sheetQuantity",
+                                fontSize = 14.sp,
+                                fontWeight = FontWeight.Bold,
+                                color = PrimaryText,
+                                modifier = Modifier.padding(horizontal = 14.dp)
+                            )
+
+                            Box(
+                                modifier = Modifier
+                                    .size(32.dp)
+                                    .clip(CircleShape)
+                                    .clickable { sheetQuantity++ },
+                                contentAlignment = Alignment.Center
+                            ) {
+                                Text(text = "+", fontSize = 16.sp, fontWeight = FontWeight.Bold, color = PrimaryText)
+                            }
+                        }
+                    }
+
+                    Spacer(modifier = Modifier.height(24.dp))
+
+                    // Bottom Sheet Action Confirm Button
+                    Box(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(48.dp)
+                            .clip(RoundedCornerShape(24.dp))
+                            .background(PrimaryCTA)
+                            .clickable {
+                                val isBuyNow = activeSheetAction == DetailSheetAction.BUY_NOW
+                                activeSheetAction = DetailSheetAction.NONE
+                                if (isBuyNow) {
+                                    onBuyNow()
+                                } else {
+                                    if (product != null) {
+                                        onAddToCart(product)
+                                    }
+                                    onNavigateToCart()
+                                }
+                            },
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Text(
+                            text = if (activeSheetAction == DetailSheetAction.BUY_NOW) "Xác nhận mua ngay ⚡" else "Xác nhận thêm vào giỏ 🛒",
+                            fontSize = 15.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = Color.White
+                        )
+                    }
+
+                    Spacer(modifier = Modifier.height(16.dp))
+                }
+            }
         }
     }
 }
@@ -974,15 +936,16 @@ fun VariantCard(
 ) {
     Box(
         modifier = modifier
-            .clip(RoundedCornerShape(14.dp))
-            .background(if (isSelected) PrimaryCTA else SecondarySurface)
+            .shadow(2.dp, RoundedCornerShape(16.dp), ambientColor = BorderDivider)
+            .clip(RoundedCornerShape(16.dp))
+            .background(CardSurface)
             .border(
-                1.dp,
-                if (isSelected) PrimaryCTA else BorderDivider,
-                RoundedCornerShape(14.dp)
+                1.5.dp,
+                if (isSelected) AdminMaroon else BorderDivider,
+                RoundedCornerShape(16.dp)
             )
             .clickable { onClick() }
-            .padding(vertical = 10.dp, horizontal = 8.dp),
+            .padding(10.dp),
         contentAlignment = Alignment.Center
     ) {
         Column(horizontalAlignment = Alignment.CenterHorizontally) {
@@ -990,8 +953,8 @@ fun VariantCard(
                 Box(
                     modifier = Modifier
                         .clip(RoundedCornerShape(6.dp))
-                        .background(Color(0xFFDCFCE7))
-                        .padding(horizontal = 4.dp, vertical = 2.dp)
+                        .background(SuccessBg)
+                        .padding(horizontal = 6.dp, vertical = 2.dp)
                 ) {
                     Text(
                         text = badge,
@@ -1000,62 +963,21 @@ fun VariantCard(
                         color = SuccessText
                     )
                 }
-                Spacer(modifier = Modifier.height(2.dp))
+                Spacer(modifier = Modifier.height(4.dp))
             }
+
             Text(
                 text = title,
-                fontSize = 11.sp,
+                fontSize = 12.sp,
                 fontWeight = FontWeight.Bold,
-                color = if (isSelected) Color.White else PrimaryText,
-                maxLines = 1
+                color = if (isSelected) AdminMaroon else PrimaryText
             )
-            Spacer(modifier = Modifier.height(2.dp))
             Text(
                 text = price,
-                fontSize = 12.sp,
-                fontWeight = FontWeight.ExtraBold,
-                color = if (isSelected) Color.White else SecondarySoftText
+                fontSize = 11.sp,
+                fontWeight = FontWeight.SemiBold,
+                color = DangerText
             )
         }
-    }
-}
-
-@Composable
-fun CommitmentItemCard(iconText: String, desc: String, modifier: Modifier = Modifier) {
-    Box(
-        modifier = modifier
-            .clip(RoundedCornerShape(14.dp))
-            .background(SecondarySurface)
-            .padding(10.dp)
-    ) {
-        Column {
-            Text(
-                text = iconText,
-                fontSize = 12.sp,
-                fontWeight = FontWeight.Bold,
-                color = PrimaryText
-            )
-            Spacer(modifier = Modifier.height(2.dp))
-            Text(text = desc, fontSize = 10.sp, color = SecondaryText, lineHeight = 14.sp)
-        }
-    }
-}
-
-@Composable
-fun SpecRow(label: String, value: String) {
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(vertical = 6.dp),
-        horizontalArrangement = Arrangement.SpaceBetween
-    ) {
-        Text(text = label, fontSize = 12.sp, color = MutedText, modifier = Modifier.weight(1f))
-        Text(
-            text = value,
-            fontSize = 12.sp,
-            fontWeight = FontWeight.Bold,
-            color = PrimaryText,
-            modifier = Modifier.weight(1.5f)
-        )
     }
 }

@@ -1,5 +1,6 @@
 package com.example.petshop.ui.components
 
+import android.widget.Toast
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -29,6 +30,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextDecoration
@@ -54,6 +56,7 @@ fun ProductCard(
     product: Product,
     onProductClick: (Product) -> Unit,
     onAddToCart: (Product) -> Unit,
+    onToggleFavorite: ((Product) -> Unit)? = null,
     modifier: Modifier = Modifier
 ) {
     var isFavorite by remember { mutableStateOf(false) }
@@ -128,6 +131,7 @@ fun ProductCard(
                 }
 
                 // Top-Right Favorite Heart Button
+                val context = LocalContext.current
                 Box(
                     modifier = Modifier
                         .align(Alignment.TopEnd)
@@ -136,7 +140,15 @@ fun ProductCard(
                         .shadow(4.dp, CircleShape)
                         .clip(CircleShape)
                         .background(CardSurface)
-                        .clickable { isFavorite = !isFavorite },
+                        .clickable {
+                            isFavorite = !isFavorite
+                            Toast.makeText(
+                                context,
+                                if (isFavorite) "❤️ Đã lưu Yêu Thích 4 trường lên Firebase!" else "🤍 Đã bỏ yêu thích",
+                                Toast.LENGTH_SHORT
+                            ).show()
+                            onToggleFavorite?.invoke(product)
+                        },
                     contentAlignment = Alignment.Center
                 ) {
                     Icon(

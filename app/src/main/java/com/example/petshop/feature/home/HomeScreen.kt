@@ -95,6 +95,7 @@ fun HomeScreen(
     onNavigateToSearchHistory: () -> Unit = {},
     onNavigateToCameraScan: () -> Unit = {},
     onNavigateToCategoryProductList: (String) -> Unit = {},
+    onToggleFavorite: (Product) -> Unit = {},
     viewModel: HomeViewModel = androidx.lifecycle.viewmodel.compose.viewModel()
 ) {
     var selectedTab by remember { mutableStateOf<HomeTab>(HomeTab.Home) }
@@ -284,7 +285,8 @@ fun HomeScreen(
                             ProductCard(
                                 product = product,
                                 onProductClick = onNavigateToProductDetail,
-                                onAddToCart = {},
+                                onAddToCart = { prod -> onNavigateToProductDetail(prod) },
+                                onToggleFavorite = onToggleFavorite,
                                 modifier = Modifier.weight(1f)
                             )
                         }

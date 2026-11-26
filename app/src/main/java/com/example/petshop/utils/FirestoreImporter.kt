@@ -50,11 +50,9 @@ fun importProductsFromAssets(context: Context) {
             .addOnFailureListener { e ->
                 Log.e("FirestoreImporter", "Lỗi import sản phẩm", e)
             }
-
     } catch (e: Exception) {
         Log.e("FirestoreImporter", "Lỗi đọc file products.json", e)
     }
-
     // 2. Import Categories
     try {
         val catString = context.assets.open("categories.json")
@@ -79,7 +77,6 @@ fun importProductsFromAssets(context: Context) {
             catBatch.set(docRef, catMap)
             catCount++
         }
-
         catBatch.commit()
             .addOnSuccessListener {
                 Log.d("FirestoreImporter", "Đã import thành công $catCount danh mục!")
@@ -87,7 +84,6 @@ fun importProductsFromAssets(context: Context) {
             .addOnFailureListener { e ->
                 Log.e("FirestoreImporter", "Lỗi import danh mục", e)
             }
-
     } catch (e: Exception) {
         Log.e("FirestoreImporter", "Lỗi đọc file categories.json", e)
     }

@@ -47,6 +47,8 @@ import com.example.petshop.data.model.Product
 import com.example.petshop.ui.components.ProductCard
 import com.example.petshop.ui.theme.AdminMaroon
 import com.example.petshop.ui.theme.BorderDivider
+import androidx.compose.foundation.Image
+import androidx.compose.ui.graphics.asImageBitmap
 import com.example.petshop.ui.theme.CardSurface
 import com.example.petshop.ui.theme.DangerText
 import com.example.petshop.ui.theme.GlobalBackground
@@ -70,7 +72,8 @@ fun ImageSearchResultScreen(
     onNavigateToCart: () -> Unit = {},
     onProductClick: (Product) -> Unit = {},
     onAddToCart: (Product) -> Unit = {},
-    viewModel: SearchViewModel = viewModel()
+    viewModel: SearchViewModel = viewModel(),
+    visualViewModel: VisualSearchViewModel = viewModel()
 ) {
     var selectedFilterIndex by remember { mutableStateOf(1) }
 
@@ -78,8 +81,9 @@ fun ImageSearchResultScreen(
         viewModel.onQueryChanged(searchQuery)
     }
 
-    val products = viewModel.searchResults
-    val isLoading = viewModel.isLoading
+    val visualMatches = visualViewModel.searchResults
+    val products = if (visualMatches.isNotEmpty()) visualMatches.map { it.product } else viewModel.searchResults
+    val isLoading = viewModel.isLoading || visualViewModel.isAnalyzing
 
     Scaffold(
         containerColor = GlobalBackground
@@ -279,10 +283,19 @@ fun ImageSearchResultScreen(
                                 .border(2.dp, PrimaryCTA, RoundedCornerShape(12.dp)),
                             contentAlignment = Alignment.Center
                         ) {
-                            Text(
-                                text = if (searchQuery.contains("cho") || searchQuery.contains("cun")) "🐶" else "🐱",
-                                fontSize = 32.sp
-                            )
+                            if (visualViewModel.capturedBitmap != null) {
+                                Image(
+                                    bitmap = visualViewModel.capturedBitmap!!.asImageBitmap(),
+                                    contentDescription = "Ảnh đã quét",
+                                    contentScale = ContentScale.Crop,
+                                    modifier = Modifier.fillMaxSize()
+                                )
+                            } else {
+                                Text(
+                                    text = if (searchQuery.contains("cho") || searchQuery.contains("cun")) "🐶" else "🐱",
+                                    fontSize = 32.sp
+                                )
+                            }
                         }
 
                         Spacer(modifier = Modifier.width(12.dp))
