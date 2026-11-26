@@ -1,20 +1,32 @@
 package com.example.petshop.data.model
 
+import com.google.firebase.firestore.PropertyName
+
 data class VoucherDetail(
-    val id: String,
-    val iconEmoji: String,
-    val iconBgType: String, // "green", "pink", "brown", "beige", "points"
-    val badge1: String,
+    val id: String = "",
+    @get:PropertyName("ma_khuyen_mai") val maKhuyenMai: String = "",
+    @get:PropertyName("ten_khuyen_mai") val tenKhuyenMai: String = "",
+    @get:PropertyName("chuong_trinh_khuyen_mai") val chuongTrinhKhuyenMai: String = "",
+    @get:PropertyName("ngay_bat_dau") val ngayBatDau: String = "",
+    @get:PropertyName("ngay_ket_thuc") val ngayKetThuc: String = "",
+    @get:PropertyName("han_muc_khuyen_mai") val hanMucKhuyenMai: String = "",
+    @get:PropertyName("trang_thai_khuyen_mai") val trangThaiKhuyenMai: String = "",
+    @get:PropertyName("dieu_kien_khuyen_mai") val dieuKienKhuyenMai: String = "",
+
+    // UI fields
+    val iconEmoji: String = "🎟️",
+    val iconBgType: String = "green",
+    val badge1: String = "KHUYẾN MÃI",
     val badge2: String? = null,
-    val title: String,
-    val subtitle: String,
-    val hsdText: String,
-    val footerLeftText: String,
-    val buttonType: String, // "already_saved", "save", "exchange"
+    val title: String = "",
+    val subtitle: String = "",
+    val hsdText: String = "",
+    val footerLeftText: String = "",
+    val buttonType: String = "save",
     val isSaved: Boolean = false,
     val usagePercent: Int? = null,
     val usageText: String? = null,
-    val category: String = "Freeship"
+    val category: String = "Giảm giá"
 )
 
 val sampleVoucherDetails = listOf(

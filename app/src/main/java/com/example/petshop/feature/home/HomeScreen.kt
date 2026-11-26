@@ -134,16 +134,13 @@ fun HomeScreen(
             HomeTopHeaderBar(onNavigateToCart = onNavigateToCart)
 
             Spacer(modifier = Modifier.height(12.dp))
-
             // 2. Search Bar & Hot Tags
             HomeSearchBarSection(
                 onSearchClick = onNavigateToSearchHistory,
                 onCameraClick = onNavigateToCameraScan
             )
-
             Spacer(modifier = Modifier.height(12.dp))
-
-//            // Admin Import Button Banner
+            // Admin Import Button Banner
 //            val context = LocalContext.current
 //            var importStatus by remember { mutableStateOf<String?>(null) }
 //
@@ -156,14 +153,14 @@ fun HomeScreen(
 //                    .border(1.dp, PrimaryCTA, RoundedCornerShape(16.dp))
 //                    .clickable {
 //                        importProductsFromAssets(context)
-//                        importStatus = "Đã import dữ liệu thành công! Hãy reload lại trang."
+//                        importStatus = "Đã import toàn bộ 16 bảng chuẩn ERD lên Firestore!"
 //                    }
 //                    .padding(12.dp),
 //                contentAlignment = Alignment.Center
 //            ) {
 //                Column(horizontalAlignment = Alignment.CenterHorizontally) {
 //                    Text(
-//                        text = "🚀 Bấm vào đây để Import sản phẩm vào Firestore",
+//                        text = "🚀 Bấm vào đây để Import toàn bộ CSDL (16 bảng ERD)",
 //                        fontSize = 13.sp,
 //                        fontWeight = FontWeight.Bold,
 //                        color = PrimaryCTA

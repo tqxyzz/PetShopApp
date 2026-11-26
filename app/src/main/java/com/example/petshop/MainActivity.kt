@@ -17,30 +17,26 @@ import com.example.petshop.feature.auth.ForgotPasswordDialog
 import com.example.petshop.feature.auth.LoginScreen
 import com.example.petshop.feature.auth.RegisterScreen
 import com.example.petshop.feature.brand.OfficialBrandsScreen
-import com.example.petshop.feature.cart.CartScreen
-import com.example.petshop.feature.cart.CartViewModel
-import com.example.petshop.feature.cart.VoucherPetPointsScreen
 import com.example.petshop.feature.category.CategoryProductListScreen
 import com.example.petshop.feature.category.CategoryScreen
-import com.example.petshop.feature.checkout.CheckoutViewModel
-import com.example.petshop.feature.checkout.OrderSuccessScreen
-import com.example.petshop.feature.checkout.PaymentMethodScreen
-import com.example.petshop.feature.checkout.ShippingAddressScreen
-import com.example.petshop.feature.favorite.FavoriteScreen
-import com.example.petshop.feature.favorite.FavoriteViewModel
 import com.example.petshop.feature.flashsale.FlashSaleScreen
 import com.example.petshop.feature.home.HomeScreen
 import com.example.petshop.feature.onboarding.OnboardingScreen
-import com.example.petshop.feature.product.ProductDetailScreen
-import com.example.petshop.feature.search.CameraScanScreen
-import com.example.petshop.feature.search.ImageSearchResultScreen
-import com.example.petshop.feature.search.SearchHistoryScreen
-import com.example.petshop.feature.search.TextSearchResultScreen
-import com.example.petshop.feature.search.VisualSearchViewModel
 import com.example.petshop.feature.splash.SplashScreen
 import com.example.petshop.feature.voucher.VoucherCenterScreen
-import com.example.petshop.ui.theme.PetShopTheme
+import com.example.petshop.feature.cart.CartScreen
+import com.example.petshop.feature.cart.VoucherPetPointsScreen
+import com.example.petshop.feature.checkout.OrderSuccessScreen
+import com.example.petshop.feature.checkout.PaymentMethodScreen
+import com.example.petshop.feature.checkout.ShippingAddressScreen
+import com.example.petshop.feature.product.ProductDetailScreen
+import com.example.petshop.feature.cart.CartViewModel
+import com.example.petshop.feature.checkout.CheckoutViewModel
+import com.example.petshop.feature.search.CameraScanScreen
 import com.google.firebase.auth.FirebaseAuth
+import com.example.petshop.feature.search.ImageSearchResultScreen
+import com.example.petshop.feature.search.SearchHistoryScreen
+import com.example.petshop.ui.theme.PetShopTheme
 
 sealed class AppScreen {
     object Splash : AppScreen()
@@ -56,10 +52,8 @@ sealed class AppScreen {
     object SearchHistory : AppScreen()
     object CameraScan : AppScreen()
     object ImageSearchResult : AppScreen()
-    object TextSearchResult : AppScreen()
     object ProductDetail : AppScreen()
     object Cart : AppScreen()
-    object Favorite : AppScreen()
     object VoucherPetPoints : AppScreen()
     object ShippingAddress : AppScreen()
     object PaymentMethod : AppScreen()
@@ -73,23 +67,12 @@ class MainActivity : ComponentActivity() {
         setContent {
             PetShopTheme {
                 var currentScreen by remember { mutableStateOf<AppScreen>(AppScreen.Splash) }
-                var previousScreen by remember { mutableStateOf<AppScreen>(AppScreen.Home) }
-
                 var showForgotPasswordDialog by remember { mutableStateOf(false) }
                 var activeCategoryTitle by remember { mutableStateOf("Đồ Dùng & Thức Ăn Cho Chó") }
                 var activeSearchQuery by remember { mutableStateOf("hạt cho chó") }
                 var selectedProduct by remember { mutableStateOf<com.example.petshop.data.model.Product?>(null) }
-
                 val cartViewModel: CartViewModel = androidx.lifecycle.viewmodel.compose.viewModel()
                 val checkoutViewModel: CheckoutViewModel = androidx.lifecycle.viewmodel.compose.viewModel()
-                val visualSearchViewModel: VisualSearchViewModel = androidx.lifecycle.viewmodel.compose.viewModel()
-                val favoriteViewModel: FavoriteViewModel = androidx.lifecycle.viewmodel.compose.viewModel()
-
-                val navigateToDetail: (com.example.petshop.data.model.Product) -> Unit = { prod ->
-                    selectedProduct = prod
-                    previousScreen = currentScreen
-                    currentScreen = AppScreen.ProductDetail
-                }
 
                 val checkAuthAndProceed: (() -> Unit) -> Unit = { action ->
                     if (FirebaseAuth.getInstance().currentUser == null) {
@@ -162,7 +145,10 @@ class MainActivity : ComponentActivity() {
                                     onNavigateToCart = {
                                         checkAuthAndProceed { currentScreen = AppScreen.Cart }
                                     },
-                                    onNavigateToProductDetail = navigateToDetail,
+                                    onNavigateToProductDetail = { prod ->
+                                        selectedProduct = prod
+                                        currentScreen = AppScreen.ProductDetail
+                                    },
                                     onNavigateToSearchHistory = {
                                         currentScreen = AppScreen.SearchHistory
                                     },
@@ -172,9 +158,6 @@ class MainActivity : ComponentActivity() {
                                     onNavigateToCategoryProductList = { categoryTitle ->
                                         activeCategoryTitle = categoryTitle
                                         currentScreen = AppScreen.CategoryProductList
-                                    },
-                                    onToggleFavorite = { prod ->
-                                        favoriteViewModel.toggleFavorite(prod)
                                     }
                                 )
                             }
@@ -214,15 +197,7 @@ class MainActivity : ComponentActivity() {
                                 CategoryProductListScreen(
                                     categoryTitle = activeCategoryTitle,
                                     onBack = {
-                                        currentScreen = AppScreen.Category
-                                    },
-                                    onNavigateToCart = {
-                                        checkAuthAndProceed { currentScreen = AppScreen.Cart }
-                                    },
-                                    onProductClick = navigateToDetail,
-                                    onAddToCart = navigateToDetail,
-                                    onToggleFavorite = { prod ->
-                                        favoriteViewModel.toggleFavorite(prod)
+                                        currentScreen = AppScreen.Home
                                     }
                                 )
                             }
@@ -236,34 +211,20 @@ class MainActivity : ComponentActivity() {
                                     },
                                     onSearchSubmit = { query ->
                                         activeSearchQuery = if (query.isNotBlank()) query else "hạt cho chó"
-                                        currentScreen = AppScreen.TextSearchResult
+                                        currentScreen = AppScreen.ImageSearchResult
                                     },
-                                    onProductClick = navigateToDetail,
-                                    onAddToCart = navigateToDetail
-                                )
-                            }
-                            is AppScreen.TextSearchResult -> {
-                                TextSearchResultScreen(
-                                    initialQuery = activeSearchQuery,
-                                    onBack = {
-                                        currentScreen = AppScreen.SearchHistory
+                                    onProductClick = { prod ->
+                                        selectedProduct = prod
+                                        currentScreen = AppScreen.ProductDetail
                                     },
-                                    onNavigateToCameraScan = {
-                                        currentScreen = AppScreen.CameraScan
-                                    },
-                                    onNavigateToCart = {
-                                        checkAuthAndProceed { currentScreen = AppScreen.Cart }
-                                    },
-                                    onAddToCart = navigateToDetail,
-                                    onProductClick = navigateToDetail,
-                                    onToggleFavorite = { prod ->
-                                        favoriteViewModel.toggleFavorite(prod)
+                                    onAddToCart = { prod ->
+                                        cartViewModel.addToCart(prod)
+                                        currentScreen = AppScreen.Cart
                                     }
                                 )
                             }
                             is AppScreen.CameraScan -> {
                                 CameraScanScreen(
-                                    viewModel = visualSearchViewModel,
                                     onBack = {
                                         currentScreen = AppScreen.SearchHistory
                                     },
@@ -282,7 +243,6 @@ class MainActivity : ComponentActivity() {
                             is AppScreen.ImageSearchResult -> {
                                 ImageSearchResultScreen(
                                     searchQuery = activeSearchQuery,
-                                    visualViewModel = visualSearchViewModel,
                                     onBack = {
                                         currentScreen = AppScreen.SearchHistory
                                     },
@@ -295,15 +255,23 @@ class MainActivity : ComponentActivity() {
                                     onNavigateToCart = {
                                         checkAuthAndProceed { currentScreen = AppScreen.Cart }
                                     },
-                                    onAddToCart = navigateToDetail,
-                                    onProductClick = navigateToDetail
+                                    onAddToCart = { prod ->
+                                        checkAuthAndProceed {
+                                            cartViewModel.addToCart(prod)
+                                            currentScreen = AppScreen.Cart
+                                        }
+                                    },
+                                    onProductClick = { prod ->
+                                        selectedProduct = prod
+                                        currentScreen = AppScreen.ProductDetail
+                                    }
                                 )
                             }
                             is AppScreen.ProductDetail -> {
                                 ProductDetailScreen(
                                     product = selectedProduct,
                                     onBack = {
-                                        currentScreen = previousScreen
+                                        currentScreen = AppScreen.Home
                                     },
                                     onNavigateToCart = {
                                         checkAuthAndProceed { currentScreen = AppScreen.Cart }
@@ -320,9 +288,6 @@ class MainActivity : ComponentActivity() {
                                             }
                                             currentScreen = AppScreen.ShippingAddress
                                         }
-                                    },
-                                    onToggleFavorite = { prod ->
-                                        favoriteViewModel.toggleFavorite(prod)
                                     }
                                 )
                             }
@@ -338,26 +303,6 @@ class MainActivity : ComponentActivity() {
                                     onNavigateToCheckout = {
                                         checkoutViewModel.setCartCheckout(cartViewModel.cartItems)
                                         currentScreen = AppScreen.ShippingAddress
-                                    }
-                                )
-                            }
-                            is AppScreen.Favorite -> {
-                                FavoriteScreen(
-                                    viewModel = favoriteViewModel,
-                                    onBack = {
-                                        currentScreen = AppScreen.Home
-                                    },
-                                    onNavigateToSearch = {
-                                        currentScreen = AppScreen.SearchHistory
-                                    },
-                                    onNavigateToFlashSale = {
-                                        currentScreen = AppScreen.FlashSale
-                                    },
-                                    onProductClick = navigateToDetail,
-                                    onAddToCart = navigateToDetail,
-                                    onAddAllToCart = { list ->
-                                        list.forEach { cartViewModel.addToCart(it) }
-                                        currentScreen = AppScreen.Cart
                                     }
                                 )
                             }

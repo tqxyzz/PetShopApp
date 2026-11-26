@@ -1,0 +1,14 @@
+[
+  {
+    "ma_anh_san_pham": "img_001",
+    "ma_san_pham": "prod_001",
+    "thu_tu_anh": 1,
+    "anh_chinh": true
+  },
+  {
+    "ma_anh_san_pham": "img_002",
+    "ma_san_pham": "prod_002",
+    "thu_tu_anh": 1,
+    "anh_chinh": true
+  }
+]
