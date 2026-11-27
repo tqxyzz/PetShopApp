@@ -166,7 +166,7 @@ class MainActivity : ComponentActivity() {
                                         currentScreen = AppScreen.FlashSale
                                     },
                                     onNavigateToVoucher = {
-                                        currentScreen = AppScreen.Voucher
+                                        checkAuthAndProceed { currentScreen = AppScreen.Voucher }
                                     },
                                     onNavigateToCategory = {
                                         currentScreen = AppScreen.Category
@@ -177,12 +177,25 @@ class MainActivity : ComponentActivity() {
                                     onNavigateToCart = {
                                         checkAuthAndProceed { currentScreen = AppScreen.Cart }
                                     },
+                                    onNavigateToProfile = {
+                                        checkAuthAndProceed { currentScreen = AppScreen.CaNhan }
+                                    },
+                                    onNavigateToAssistant = {
+                                        checkAuthAndProceed { /* Handle assistant */ }
+                                    },
                                     onNavigateToProductDetail = { prod ->
                                         selectedProduct = prod
                                         currentScreen = AppScreen.ProductDetail
                                     },
-                                    onNavigateToProfile = {
-                                        currentScreen = AppScreen.CaNhan
+                                    onNavigateToSearchHistory = {
+                                        currentScreen = AppScreen.SearchHistory
+                                    },
+                                    onNavigateToCameraScan = {
+                                        currentScreen = AppScreen.CameraScan
+                                    },
+                                    onNavigateToCategoryProductList = { categoryTitle ->
+                                        activeCategoryTitle = categoryTitle
+                                        currentScreen = AppScreen.CategoryProductList
                                     }
                                 )
                             }
@@ -222,7 +235,7 @@ class MainActivity : ComponentActivity() {
                                 CategoryProductListScreen(
                                     categoryTitle = activeCategoryTitle,
                                     onBack = {
-                                        currentScreen = AppScreen.Category
+                                        currentScreen = AppScreen.Home
                                     }
                                 )
                             }
