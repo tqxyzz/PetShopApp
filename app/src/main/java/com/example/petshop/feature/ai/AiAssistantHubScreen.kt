@@ -39,11 +39,20 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.foundation.text.BasicTextField
+import androidx.compose.foundation.text.KeyboardActions
+import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.ui.graphics.SolidColor
+import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.input.ImeAction
+import androidx.compose.ui.text.input.KeyboardType
 import com.example.petshop.R
 import com.example.petshop.data.model.AiRecentChat
 import com.example.petshop.data.model.AiTool
 import com.example.petshop.data.model.sampleAiTools
 import com.example.petshop.data.model.sampleRecentChats
+import com.example.petshop.ui.components.HomeTab
+import com.example.petshop.ui.components.PetShopBottomNavBar
 import com.example.petshop.ui.theme.AdminMaroon
 import com.example.petshop.ui.theme.BorderDivider
 import com.example.petshop.ui.theme.CardSurface
@@ -66,12 +75,13 @@ import com.example.petshop.ui.theme.WarningText
 @Composable
 fun AiAssistantHubScreen(
     onBack: () -> Unit = {},
+    onNavigateToHome: () -> Unit = {},
+    onNavigateToCategory: () -> Unit = {},
     onNavigateToChat: () -> Unit = {},
     onNavigateToProfile: () -> Unit = {},
     onNavigateToNotification: () -> Unit = {}
 ) {
     var promptQuery by remember { mutableStateOf("") }
-    var activeAiTab by remember { mutableStateOf("consult") }
 
     val quickQuestions = listOf(
         "✏ Hạt nào giúp mượt lông & giảm rụng?",
@@ -81,9 +91,16 @@ fun AiAssistantHubScreen(
 
     Scaffold(
         bottomBar = {
-            AiSubBottomNav(
-                selectedTab = activeAiTab,
-                onTabSelect = { activeAiTab = it }
+            PetShopBottomNavBar(
+                selectedTab = HomeTab.Assistant,
+                onTabSelected = { tab ->
+                    when (tab) {
+                        is HomeTab.Home -> onNavigateToHome()
+                        is HomeTab.Category -> onNavigateToCategory()
+                        is HomeTab.Assistant -> { /* Already on Assistant */ }
+                        is HomeTab.Profile -> onNavigateToProfile()
+                    }
+                }
             )
         },
         containerColor = GlobalBackground
@@ -226,14 +243,38 @@ fun AiAssistantHubScreen(
 
                         Spacer(modifier = Modifier.width(10.dp))
 
-                        Text(
-                            text = if (promptQuery.isEmpty()) "Hỏi AI bất kỳ điều gì về khẩu vị, đồ..." else promptQuery,
-                            fontSize = 13.sp,
-                            color = if (promptQuery.isEmpty()) PlaceholderText else PrimaryText,
+                        Box(
                             modifier = Modifier.weight(1f),
-                            maxLines = 1,
-                            overflow = TextOverflow.Ellipsis
-                        )
+                            contentAlignment = Alignment.CenterStart
+                        ) {
+                            if (promptQuery.isEmpty()) {
+                                Text(
+                                    text = "Hỏi AI bất kỳ điều gì về khẩu vị, đồ...",
+                                    fontSize = 13.sp,
+                                    color = PlaceholderText
+                                )
+                            }
+                            BasicTextField(
+                                value = promptQuery,
+                                onValueChange = { promptQuery = it },
+                                singleLine = true,
+                                textStyle = TextStyle(
+                                    fontSize = 13.sp,
+                                    fontWeight = FontWeight.Medium,
+                                    color = PrimaryText
+                                ),
+                                cursorBrush = SolidColor(PrimaryText),
+                                keyboardOptions = KeyboardOptions(
+                                    keyboardType = KeyboardType.Text,
+                                    autoCorrectEnabled = false,
+                                    imeAction = ImeAction.Send
+                                ),
+                                keyboardActions = KeyboardActions(
+                                    onSend = { onNavigateToChat() }
+                                ),
+                                modifier = Modifier.fillMaxWidth()
+                            )
+                        }
 
                         Spacer(modifier = Modifier.width(8.dp))
 
@@ -796,61 +837,6 @@ private fun AiRecentChatCard(
                 fontWeight = FontWeight.Bold,
                 color = SecondaryText
             )
-        }
-    }
-}
-
-@Composable
-private fun AiSubBottomNav(
-    selectedTab: String,
-    onTabSelect: (String) -> Unit
-) {
-    Box(
-        modifier = Modifier
-            .fillMaxWidth()
-            .shadow(12.dp, RoundedCornerShape(topStart = 24.dp, topEnd = 24.dp), ambientColor = BorderDivider, spotColor = BorderDivider)
-            .clip(RoundedCornerShape(topStart = 24.dp, topEnd = 24.dp))
-            .background(CardSurface)
-            .border(1.dp, BorderDivider, RoundedCornerShape(topStart = 24.dp, topEnd = 24.dp))
-            .padding(vertical = 10.dp, horizontal = 12.dp)
-    ) {
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.SpaceAround,
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            val tabs = listOf(
-                Triple("consult", "Tư vấn", R.drawable.ic_ai_assistant),
-                Triple("history", "Lịch sử", R.drawable.ic_ticket),
-                Triple("pet", "Hồ sơ thú", R.drawable.ic_paw),
-                Triple("recommend", "Đề xuất", R.drawable.ic_shopping_bag)
-            )
-
-            tabs.forEach { (route, label, iconRes) ->
-                val isSelected = route == selectedTab
-
-                Column(
-                    horizontalAlignment = Alignment.CenterHorizontally,
-                    modifier = Modifier
-                        .clip(RoundedCornerShape(12.dp))
-                        .clickable { onTabSelect(route) }
-                        .padding(horizontal = 10.dp, vertical = 4.dp)
-                ) {
-                    Icon(
-                        painter = painterResource(id = iconRes),
-                        contentDescription = label,
-                        tint = if (isSelected) PrimaryCTA else MutedText,
-                        modifier = Modifier.size(20.dp)
-                    )
-                    Spacer(modifier = Modifier.height(4.dp))
-                    Text(
-                        text = label,
-                        fontSize = 11.sp,
-                        fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Medium,
-                        color = if (isSelected) PrimaryCTA else MutedText
-                    )
-                }
-            }
         }
     }
 }

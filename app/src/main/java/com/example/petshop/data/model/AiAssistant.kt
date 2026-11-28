@@ -32,7 +32,8 @@ data class ChatMessage(
     val text: String,
     val timestamp: String,
     val recommendedProducts: List<RecommendedProduct>? = null,
-    val footerNote: String? = null
+    val footerNote: String? = null,
+    val isFromGemini: Boolean = false
 )
 
 val sampleAiTools = listOf(

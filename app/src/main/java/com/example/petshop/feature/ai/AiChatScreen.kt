@@ -12,14 +12,19 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.imePadding
+import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
+import androidx.compose.foundation.text.KeyboardActions
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
@@ -40,6 +45,8 @@ import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.ImeAction
+import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
@@ -51,6 +58,7 @@ import com.example.petshop.data.model.sampleChatMessages
 import com.example.petshop.ui.theme.AdminMaroon
 import com.example.petshop.ui.theme.BorderDivider
 import com.example.petshop.ui.theme.CardSurface
+import com.example.petshop.ui.theme.DangerText
 import com.example.petshop.ui.theme.GlobalBackground
 import com.example.petshop.ui.theme.IconPrimaryBg
 import com.example.petshop.ui.theme.IconPrimaryTint
@@ -82,6 +90,7 @@ fun AiChatScreen(
     val coroutineScope = rememberCoroutineScope()
     var isBotLoading by remember { mutableStateOf(false) }
     var currentAccountId by remember { mutableStateOf("acc_002") }
+    val listState = rememberLazyListState()
 
     LaunchedEffect(Unit) {
         GeminiAiService.fetchStoreProducts()
@@ -98,14 +107,20 @@ fun AiChatScreen(
                                 val senderType = doc.getString("loai_nguoi_gui") ?: "Khách hàng"
                                 val content = doc.getString("noi_dung") ?: return@mapNotNull null
                                 val timeStr = doc.getString("ngay_tro_chuyen") ?: "10:14"
+                                val ts = doc.getLong("timestamp") ?: 0L
 
-                                ChatMessage(
-                                    id = doc.id,
-                                    sender = if (senderType == "Khách hàng") "user" else "bot",
-                                    text = content,
-                                    timestamp = timeStr
+                                Pair(
+                                    ts,
+                                    ChatMessage(
+                                        id = doc.id,
+                                        sender = if (senderType == "Khách hàng") "user" else "bot",
+                                        text = content,
+                                        timestamp = timeStr,
+                                        isFromGemini = senderType != "Khách hàng"
+                                    )
                                 )
-                            }
+                            }.sortedBy { it.first }.map { it.second }
+
                             if (historyMsgs.isNotEmpty()) {
                                 messages.clear()
                                 messages.addAll(historyMsgs)
@@ -115,6 +130,13 @@ fun AiChatScreen(
             } catch (e: Exception) {
                 // Ignore safely
             }
+        }
+    }
+
+    // Auto-scroll LazyColumn to newest message
+    LaunchedEffect(messages.size) {
+        if (messages.isNotEmpty()) {
+            listState.animateScrollToItem((messages.size - 1).coerceAtLeast(0))
         }
     }
 
@@ -168,19 +190,22 @@ fun AiChatScreen(
             messages.add(responseMsg)
             isBotLoading = false
 
-            try {
-                val botChatMap = hashMapOf(
-                    "ma_phien_tro_chuyen" to "session_${System.currentTimeMillis()}",
-                    "ma_tai_khoan" to currentAccountId,
-                    "loai_nguoi_gui" to "Trợ lý AI",
-                    "noi_dung" to responseMsg.text,
-                    "ngay_tro_chuyen" to currentDateStr,
-                    "trang_thai" to "Đang hoạt động",
-                    "timestamp" to System.currentTimeMillis()
-                )
-                FirebaseFirestore.getInstance().collection("chats").add(botChatMap)
-            } catch (e: Exception) {
-                // Ignore safely
+            // Chỉ lưu lên Firestore khi câu trả lời đến từ Gemini AI thành công
+            if (responseMsg.isFromGemini) {
+                try {
+                    val botChatMap = hashMapOf(
+                        "ma_phien_tro_chuyen" to "session_${System.currentTimeMillis()}",
+                        "ma_tai_khoan" to currentAccountId,
+                        "loai_nguoi_gui" to "Trợ lý AI",
+                        "noi_dung" to responseMsg.text,
+                        "ngay_tro_chuyen" to currentDateStr,
+                        "trang_thai" to "Đang hoạt động",
+                        "timestamp" to System.currentTimeMillis()
+                    )
+                    FirebaseFirestore.getInstance().collection("chats").add(botChatMap)
+                } catch (e: Exception) {
+                    // Ignore safely
+                }
             }
         }
     }
@@ -193,11 +218,17 @@ fun AiChatScreen(
 
     Scaffold(
         bottomBar = {
-            ChatBottomInputBar(
-                inputText = inputText,
-                onInputChange = { inputText = it },
-                onSend = { handleSend(inputText) }
-            )
+            Box(
+                modifier = Modifier
+                    .navigationBarsPadding()
+                    .imePadding()
+            ) {
+                ChatBottomInputBar(
+                    inputText = inputText,
+                    onInputChange = { inputText = it },
+                    onSend = { handleSend(inputText) }
+                )
+            }
         },
         containerColor = GlobalBackground
     ) { innerPadding ->
@@ -340,6 +371,7 @@ fun AiChatScreen(
 
             // Chat Messages Log & Suggested Chips
             LazyColumn(
+                state = listState,
                 contentPadding = PaddingValues(start = 16.dp, end = 16.dp, bottom = 16.dp),
                 verticalArrangement = Arrangement.spacedBy(14.dp),
                 modifier = Modifier.fillMaxSize()
@@ -851,6 +883,14 @@ private fun ChatBottomInputBar(
                         color = PrimaryText
                     ),
                     cursorBrush = SolidColor(PrimaryText),
+                    keyboardOptions = KeyboardOptions(
+                        keyboardType = KeyboardType.Text,
+                        autoCorrectEnabled = false,
+                        imeAction = ImeAction.Send
+                    ),
+                    keyboardActions = KeyboardActions(
+                        onSend = { onSend() }
+                    ),
                     modifier = Modifier.fillMaxWidth()
                 )
             }

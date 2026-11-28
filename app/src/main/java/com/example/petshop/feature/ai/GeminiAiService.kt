@@ -22,11 +22,9 @@ import java.util.Locale
 
 object GeminiAiService {
 
-    private const val TAG = "GeminiAiService"
-    private const val GEMINI_ENDPOINT =
-        "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent"
-
+    private const val LOG_TAG = "GeminiAI"
     private var cachedProducts: List<Product> = emptyList()
+    private var cachedModelName: String? = null
 
     /**
      * Tải danh sách sản phẩm cửa hàng từ Firestore
@@ -48,7 +46,7 @@ object GeminiAiService {
                 return@withContext list
             }
         } catch (e: Exception) {
-            Log.e(TAG, "Lỗi đọc danh sách sản phẩm từ Firestore", e)
+            Log.e(LOG_TAG, "Lỗi đọc danh sách sản phẩm từ Firestore", e)
         }
 
         cachedProducts = sampleProducts
@@ -56,22 +54,82 @@ object GeminiAiService {
     }
 
     /**
-     * Gửi tin nhắn đến Gemini API hoặc chuyển sang Local Fallback
+     * Gửi tin nhắn đến Gemini API (Thử model chính -> thử model phụ -> Tự động dò List Models API -> Local Fallback)
      */
     suspend fun sendMessage(userQuery: String): ChatMessage = withContext(Dispatchers.IO) {
         val currentTime = SimpleDateFormat("HH:mm", Locale.getDefault()).format(Date())
         val products = fetchStoreProducts()
-        val apiKey = BuildConfig.GEMINI_API_KEY.trim()
+        val apiKey = BuildConfig.GEMINI_API_KEY.trim().removeSurrounding("\"").trim()
 
         if (apiKey.isBlank()) {
-            Log.w(TAG, "GEMINI_API_KEY rỗng, chuyển sang Local Fallback")
-            return@withContext generateLocalFallbackResponse(userQuery, products, currentTime)
+            Log.w(LOG_TAG, "GEMINI_API_KEY rỗng trong local.properties")
+            return@withContext generateLocalFallbackResponse(
+                userQuery,
+                products,
+                currentTime,
+                "API Key rỗng trong local.properties"
+            )
         }
 
-        try {
-            val systemContext = buildSystemContext(products)
-            val fullPrompt = "$systemContext\n\nNgười dùng hỏi: $userQuery"
+        val systemContext = buildSystemContext(products)
+        val fullPrompt = "$systemContext\n\nNgười dùng hỏi: $userQuery"
 
+        // 1. Dùng cachedModelName nếu đã dò ra trước đó, ngược lại thử gemini-2.5-flash
+        var activeModel = cachedModelName ?: "gemini-2.5-flash"
+        var result = executeGeminiRequest(activeModel, apiKey, fullPrompt)
+
+        // 2. Nếu model chính không thành công, thử lại với gemini-2.0-flash
+        if (result.isFailure && cachedModelName == null) {
+            val err1 = result.exceptionOrNull()?.message ?: ""
+            Log.w(LOG_TAG, "Thử $activeModel thất bại ($err1). Đang thử gemini-2.0-flash...")
+            activeModel = "gemini-2.0-flash"
+            result = executeGeminiRequest(activeModel, apiKey, fullPrompt)
+        }
+
+        // 3. Nếu vẫn thất bại, gọi List Models API để tự động phát hiện model Gemini khả dụng trên Cloud
+        if (result.isFailure && cachedModelName == null) {
+            Log.w(LOG_TAG, "Thử các model mặc định đều thất bại. Đang tự động dò tìm qua List Models API...")
+            val discoveredModel = discoverAvailableModel(apiKey)
+            if (!discoveredModel.isNullOrBlank()) {
+                cachedModelName = discoveredModel
+                activeModel = discoveredModel
+                Log.i(LOG_TAG, "Đã dò tìm thành công model hợp lệ: $discoveredModel. Đang gửi lại câu hỏi...")
+                result = executeGeminiRequest(discoveredModel, apiKey, fullPrompt)
+            }
+        }
+
+        if (result.isSuccess) {
+            val replyText = result.getOrNull().orEmpty()
+            if (replyText.isNotBlank()) {
+                cachedModelName = activeModel // Cache lại model thành công cho các tin nhắn sau
+                val recommendations = matchRecommendedProducts("$userQuery $replyText", products)
+                return@withContext ChatMessage(
+                    id = "msg_${System.currentTimeMillis()}",
+                    sender = "bot",
+                    text = replyText,
+                    timestamp = currentTime,
+                    recommendedProducts = recommendations.ifEmpty { null },
+                    footerNote = "< Gợi ý tự động từ Gemini AI ($activeModel)",
+                    isFromGemini = true
+                )
+            }
+        }
+
+        val finalErr = result.exceptionOrNull()?.message ?: "Lỗi kết nối Gemini API"
+        Log.e(LOG_TAG, "Gửi tin nhắn Gemini thất bại: $finalErr")
+
+        return@withContext generateLocalFallbackResponse(userQuery, products, currentTime, finalErr)
+    }
+
+    private fun executeGeminiRequest(
+        modelName: String,
+        apiKey: String,
+        fullPrompt: String
+    ): Result<String> {
+        val cleanModel = modelName.removePrefix("models/")
+        val endpoint = "https://generativelanguage.googleapis.com/v1beta/models/$cleanModel:generateContent?key=$apiKey"
+
+        try {
             val jsonPayload = JSONObject().apply {
                 val contents = JSONArray().apply {
                     val contentObj = JSONObject().apply {
@@ -86,11 +144,10 @@ object GeminiAiService {
                 put("contents", contents)
             }
 
-            val url = URL(GEMINI_ENDPOINT)
+            val url = URL(endpoint)
             val conn = (url.openConnection() as HttpURLConnection).apply {
                 requestMethod = "POST"
                 setRequestProperty("Content-Type", "application/json; charset=utf-8")
-                setRequestProperty("x-goog-api-key", apiKey)
                 connectTimeout = 10000
                 readTimeout = 12000
                 doOutput = true
@@ -106,27 +163,102 @@ object GeminiAiService {
                 val responseString = BufferedReader(InputStreamReader(conn.inputStream, "UTF-8")).use {
                     it.readText()
                 }
-
                 val replyText = parseGeminiResponse(responseString)
                 if (replyText.isNotBlank()) {
-                    val recommendations = matchRecommendedProducts(userQuery + " " + replyText, products)
-                    return@withContext ChatMessage(
-                        id = "msg_${System.currentTimeMillis()}",
-                        sender = "bot",
-                        text = replyText,
-                        timestamp = currentTime,
-                        recommendedProducts = recommendations.ifEmpty { null },
-                        footerNote = "< Gợi ý tối ưu tự động từ Gemini AI & Avocado PetShop"
-                    )
+                    return Result.success(replyText)
                 }
             } else {
-                Log.e(TAG, "Gemini API trả về mã lỗi HTTP: $responseCode")
+                val rawErrorBody = try {
+                    conn.errorStream?.bufferedReader()?.use { it.readText() } ?: ""
+                } catch (ex: Exception) {
+                    ""
+                }
+
+                var parsedMessage = rawErrorBody
+                try {
+                    if (rawErrorBody.isNotBlank()) {
+                        val errJson = JSONObject(rawErrorBody).optJSONObject("error")
+                        val msg = errJson?.optString("message")
+                        if (!msg.isNullOrBlank()) {
+                            parsedMessage = msg
+                        }
+                    }
+                } catch (ex: Exception) {
+                    // Keep rawErrorBody
+                }
+
+                val errLog = "HTTP $responseCode [$cleanModel]: $parsedMessage"
+                Log.e(LOG_TAG, errLog)
+                return Result.failure(Exception("HTTP $responseCode ($cleanModel): $parsedMessage"))
             }
         } catch (e: Exception) {
-            Log.e(TAG, "Lỗi gọi Gemini API, tự động dùng Local Fallback", e)
+            Log.e(LOG_TAG, "Lỗi kết nối Gemini API [$cleanModel]: ${e.localizedMessage}", e)
+            return Result.failure(e)
         }
+        return Result.failure(Exception("Phản hồi rỗng từ $cleanModel"))
+    }
 
-        return@withContext generateLocalFallbackResponse(userQuery, products, currentTime)
+    private fun discoverAvailableModel(apiKey: String): String? {
+        try {
+            val listUrl = "https://generativelanguage.googleapis.com/v1beta/models?key=$apiKey"
+            val conn = (URL(listUrl).openConnection() as HttpURLConnection).apply {
+                requestMethod = "GET"
+                connectTimeout = 8000
+                readTimeout = 8000
+            }
+
+            val code = conn.responseCode
+            if (code == HttpURLConnection.HTTP_OK) {
+                val body = conn.inputStream.bufferedReader().use { it.readText() }
+                val json = JSONObject(body)
+                val modelsArray = json.optJSONArray("models")
+                if (modelsArray != null) {
+                    var bestFlashModel: String? = null
+                    var fallbackModel: String? = null
+
+                    for (i in 0 until modelsArray.length()) {
+                        val mObj = modelsArray.optJSONObject(i) ?: continue
+                        val rawName = mObj.optString("name", "")
+                        val methods = mObj.optJSONArray("supportedGenerationMethods")
+
+                        var supportsGenerate = false
+                        if (methods != null) {
+                            for (j in 0 until methods.length()) {
+                                if (methods.optString(j) == "generateContent") {
+                                    supportsGenerate = true
+                                    break
+                                }
+                            }
+                        }
+
+                        if (supportsGenerate && rawName.isNotBlank()) {
+                            val cleanName = rawName.removePrefix("models/")
+                            if (cleanName.contains("flash", ignoreCase = true)) {
+                                bestFlashModel = cleanName
+                                break
+                            } else if (fallbackModel == null) {
+                                fallbackModel = cleanName
+                            }
+                        }
+                    }
+                    val selected = bestFlashModel ?: fallbackModel
+                    if (selected != null) {
+                        Log.i(LOG_TAG, "Dò tìm thấy model hỗ trợ generateContent: $selected")
+                        return selected
+                    }
+                }
+            } else {
+                val errBody = try {
+                    conn.errorStream?.bufferedReader()?.use { it.readText() } ?: ""
+                } catch (e: Exception) {
+                    ""
+                }
+                Log.e(LOG_TAG, "List Models API trả về mã HTTP $code: $errBody")
+            }
+        } catch (e: Exception) {
+            Log.e(LOG_TAG, "Lỗi gọi List Models API: ${e.localizedMessage}", e)
+        }
+        return null
     }
 
     private fun buildSystemContext(products: List<Product>): String {
@@ -164,7 +296,7 @@ object GeminiAiService {
                 }
             }
         } catch (e: Exception) {
-            Log.e(TAG, "Lỗi parse JSON phản hồi từ Gemini", e)
+            Log.e(LOG_TAG, "Lỗi parse JSON phản hồi từ Gemini", e)
         }
         return ""
     }
@@ -172,7 +304,8 @@ object GeminiAiService {
     private fun generateLocalFallbackResponse(
         query: String,
         products: List<Product>,
-        timestamp: String
+        timestamp: String,
+        diagnosticCode: String
     ): ChatMessage {
         val lowerQuery = query.lowercase(Locale.getDefault())
 
@@ -218,7 +351,8 @@ object GeminiAiService {
             text = responseText,
             timestamp = timestamp,
             recommendedProducts = recommended,
-            footerNote = "< Được tối ưu theo nhu cầu của bé cưng"
+            footerNote = "< Tự động phản hồi dự phòng cửa hàng\n(Mã chẩn đoán: $diagnosticCode)",
+            isFromGemini = false
         )
     }
 
